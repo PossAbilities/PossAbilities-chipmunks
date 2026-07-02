@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { site } from '@/content/site';
 import { listSessions } from '@/lib/db';
 import Reveal from '@/components/Reveal';
-import Chipmunk from '@/components/Chipmunk';
+import Mascot from '@/components/Mascot';
 import Wave from '@/components/Wave';
 import TiltCard from '@/components/TiltCard';
 import CountUp from '@/components/CountUp';
@@ -132,7 +132,7 @@ export default function HomePage() {
                 <div className="absolute left-12 top-8 h-72 w-16 rotate-[14deg] rounded-lg bg-pink shadow-pink animate-float-slow" aria-hidden />
                 <span className="absolute -top-3 right-8 text-3xl text-pink animate-sparkle" aria-hidden>✦</span>
                 <span className="absolute bottom-10 -left-2 text-2xl text-teal animate-sparkle [animation-delay:1.2s]" aria-hidden>✦</span>
-                <Chipmunk className="relative z-10 w-[88%] mx-auto animate-float drop-shadow-2xl" />
+                <Mascot className="relative z-10 w-[88%] mx-auto animate-float drop-shadow-2xl" />
                 <div className="absolute -bottom-2 right-0 z-20 -rotate-2 rounded-2xl border-[3px] border-teal/60 bg-white shadow-lift px-4 py-2.5 font-display font-bold text-indigo animate-float-slow">
                   “{site.tagline}” 💬
                 </div>
@@ -466,8 +466,8 @@ export default function HomePage() {
                 <span className="absolute bottom-16 right-[26%] text-2xl text-pink animate-sparkle [animation-delay:1s]">✦</span>
               </div>
               <div className="relative m-3 rounded-[2rem] border-2 border-dashed border-white/25 p-8 sm:p-14">
-                <div className="mx-auto mb-5 w-20 animate-bounce-soft">
-                  <Chipmunk className="w-full" />
+                <div className="mx-auto mb-5 w-24 animate-bounce-soft">
+                  <Mascot className="w-full" />
                 </div>
                 <h2 className="text-4xl sm:text-5xl font-bold">
                   Ready for the <span className="text-teal">best school holiday</span> ever?

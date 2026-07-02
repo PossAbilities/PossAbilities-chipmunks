@@ -160,6 +160,26 @@ h1, h2, h3, h4 {
   bottom: -11px;
 }
 
+/* Mascot waving arm — pivots at the elbow (bottom-left of the arm PNG).
+   Three friendly waves, then a rest, on a loop. */
+.mascot-arm {
+  transform-origin: 8% 92%;
+  animation: mascot-wave 4.5s ease-in-out infinite;
+}
+@keyframes mascot-wave {
+  0%, 8% { transform: rotate(0deg); }
+  14% { transform: rotate(16deg); }
+  20% { transform: rotate(-10deg); }
+  26% { transform: rotate(14deg); }
+  32% { transform: rotate(-6deg); }
+  38%, 100% { transform: rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot-arm {
+    animation: none !important;
+  }
+}
+
 /* Wiggly divider between hero words */
 .squiggle {
   stroke-dasharray: 6 8;
