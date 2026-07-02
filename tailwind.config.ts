@@ -59,6 +59,22 @@ const config: Config = {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        'marquee-rev': {
+          '0%': { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        blob: {
+          '0%, 100%': { borderRadius: '46% 54% 60% 40% / 45% 44% 56% 55%' },
+          '50%': { borderRadius: '58% 42% 40% 60% / 55% 58% 42% 45%' },
+        },
+        'bounce-soft': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-7px)' },
+        },
+        sparkle: {
+          '0%, 100%': { transform: 'scale(0.7) rotate(0deg)', opacity: '0.4' },
+          '50%': { transform: 'scale(1.15) rotate(18deg)', opacity: '1' },
+        },
         'wave-drift': {
           '0%, 100%': { transform: 'translateX(0)' },
           '50%': { transform: 'translateX(-2.5%)' },
@@ -74,6 +90,10 @@ const config: Config = {
         'pop-in': 'pop-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
         'tail-swish': 'tail-swish 3s ease-in-out infinite',
         marquee: 'marquee 28s linear infinite',
+        'marquee-rev': 'marquee-rev 34s linear infinite',
+        blob: 'blob 9s ease-in-out infinite',
+        'bounce-soft': 'bounce-soft 2.4s ease-in-out infinite',
+        sparkle: 'sparkle 2.8s ease-in-out infinite',
         'wave-drift': 'wave-drift 14s ease-in-out infinite',
         'spin-slow': 'spin-slow 24s linear infinite',
       },

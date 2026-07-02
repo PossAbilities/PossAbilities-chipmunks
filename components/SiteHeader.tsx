@@ -3,7 +3,14 @@ import { ChipmunksLockup } from '@/components/PossLogo';
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-indigo/5">
+    <>
+      <div className="bg-pink text-white text-center text-sm font-bold py-2 px-4">
+        ☀️ Summer 2026 dates are live — spaces go fast!{' '}
+        <Link href="/book" className="underline decoration-white/60 underline-offset-2 hover:decoration-white">
+          Book now →
+        </Link>
+      </div>
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-indigo/5">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-between h-[72px]">
         <Link href="/" className="group">
           <ChipmunksLockup />
@@ -23,6 +30,7 @@ export default function SiteHeader() {
           </Link>
         </nav>
       </div>
-    </header>
+      </header>
+    </>
   );
 }

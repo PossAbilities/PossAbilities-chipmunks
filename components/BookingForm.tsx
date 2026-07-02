@@ -199,11 +199,21 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
             </div>
           ))}
         </div>
-        <div className="mt-4 h-1.5 rounded-full bg-white/15 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-pink transition-all duration-500"
-            style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }}
-          />
+        <div className="relative mt-5">
+          <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-pink transition-all duration-500"
+              style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }}
+            />
+          </div>
+          {/* squirrel scampers along as you make progress */}
+          <span
+            className="absolute -top-5 text-xl transition-all duration-500 -translate-x-1/2"
+            style={{ left: `${(step / (STEPS.length - 1)) * 100}%` }}
+            aria-hidden
+          >
+            🐿️
+          </span>
         </div>
       </div>
 
