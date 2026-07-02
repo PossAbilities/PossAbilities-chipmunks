@@ -5,33 +5,30 @@ import Chipmunk from '@/components/Chipmunk';
 /**
  * Layered, animated club mascots.
  *
- * Each character is two transparent PNGs in public/mascots/:
- *   <name>-body.png  — the character with the waving arm REMOVED
- *   <name>-arm.png   — just the arm, cropped tight, elbow at bottom-left
- * The arm is pinned at the shoulder and waves on a loop (CSS only).
+ * Each character is two transparent PNGs in public/mascots/, exported
+ * from the SAME canvas so they overlay 1:1:
+ *   <name>-body.png — the character without the waving arm
+ *   <name>-arm.png  — just the waving arm, same canvas/crop
+ * The arm layer is stacked on the body and waves around an elbow pivot
+ * (CSS only, honours prefers-reduced-motion).
  *
- * Until the artwork files exist, we fall back to the built-in drawn
- * chipmunk so the site never shows a broken image.
- *
- * Tuning knobs per character (percentages of body width/height):
- *   armWidth — arm image width relative to body width
- *   armRight/armTop — where the elbow pivot sits on the body
+ * pivotX/pivotY: the elbow position as percentages of the image box —
+ * tune per character until the wave hinges naturally.
  */
 const CHARACTERS = {
-  chip: {
-    alt: 'Chip, the Chipmunks mascot, waving hello',
-    armWidth: 36,
-    armRight: -14,
-    armTop: 28,
+  orla: {
+    alt: 'Orla, the Chipmunks mascot, waving hello',
+    pivotX: '65%',
+    pivotY: '50.4%',
   },
-  // Two more characters incoming — add them here:
-  // dale: { alt: '…', armWidth: 36, armRight: -14, armTop: 28 },
+  // Two more characters incoming — drop their PNGs in public/mascots/
+  // and register them here.
 } as const;
 
 export type MascotName = keyof typeof CHARACTERS;
 
 export default function Mascot({
-  name = 'chip',
+  name = 'orla',
   className = '',
 }: {
   name?: MascotName;
@@ -57,12 +54,8 @@ export default function Mascot({
         src={`/mascots/${name}-arm.png`}
         alt=""
         aria-hidden
-        className="mascot-arm absolute z-20"
-        style={{
-          width: `${c.armWidth}%`,
-          right: `${c.armRight}%`,
-          top: `${c.armTop}%`,
-        }}
+        className="mascot-arm absolute inset-0 z-20 w-full h-auto"
+        style={{ transformOrigin: `${c.pivotX} ${c.pivotY}` }}
       />
     </div>
   );

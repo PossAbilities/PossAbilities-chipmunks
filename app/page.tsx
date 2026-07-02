@@ -127,13 +127,14 @@ export default function HomePage() {
 
             {/* mascot on morphing brand blob */}
             <Reveal delay={200} className="hidden lg:block">
-              <div className="relative mx-auto w-full max-w-md">
-                <div className="absolute right-4 top-0 h-80 w-80 bg-teal/90 animate-blob" aria-hidden />
-                <div className="absolute left-12 top-8 h-72 w-16 rotate-[14deg] rounded-lg bg-pink shadow-pink animate-float-slow" aria-hidden />
-                <span className="absolute -top-3 right-8 text-3xl text-pink animate-sparkle" aria-hidden>✦</span>
-                <span className="absolute bottom-10 -left-2 text-2xl text-teal animate-sparkle [animation-delay:1.2s]" aria-hidden>✦</span>
-                <Mascot className="relative z-10 w-[88%] mx-auto animate-float drop-shadow-2xl" />
-                <div className="absolute -bottom-2 right-0 z-20 -rotate-2 rounded-2xl border-[3px] border-teal/60 bg-white shadow-lift px-4 py-2.5 font-display font-bold text-indigo animate-float-slow">
+              <div className="relative mx-auto w-full max-w-sm pb-6">
+                {/* logo-echo composition: pink bar crossing the teal circle, Orla in front */}
+                <div className="absolute left-[12%] -top-6 h-72 w-14 rotate-[14deg] rounded-lg bg-pink/90 animate-float-slow" aria-hidden />
+                <div className="absolute left-1/2 top-[4%] h-[380px] w-[380px] -translate-x-1/2 bg-teal/90 animate-blob" aria-hidden />
+                <span className="absolute -top-4 right-10 text-3xl text-pink animate-sparkle" aria-hidden>✦</span>
+                <span className="absolute top-[55%] -left-6 text-2xl text-teal animate-sparkle [animation-delay:1.2s]" aria-hidden>✦</span>
+                <Mascot className="relative z-10 w-[72%] mx-auto animate-float drop-shadow-2xl" />
+                <div className="absolute right-[-14%] top-[6%] z-20 rotate-2 rounded-2xl rounded-bl-none border-[3px] border-teal/60 bg-white shadow-lift px-4 py-2 text-sm font-display font-bold text-indigo animate-float-slow">
                   “{site.tagline}” 💬
                 </div>
               </div>
