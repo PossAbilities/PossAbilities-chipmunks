@@ -30,9 +30,12 @@ export async function POST(req: NextRequest) {
   const required: Record<string, string> = {
     child_first: 'child’s first name',
     child_last: 'child’s last name',
+    child_dob: 'child’s date of birth',
     parent_name: 'parent/guardian name',
     parent_email: 'email address',
     parent_phone: 'phone number',
+    employee_name: 'name of the PossAbilities employee',
+    employee_relation: 'child’s relationship to the employee',
   };
   for (const [key, label] of Object.entries(required)) {
     if (!str(key)) return NextResponse.json({ error: `Please provide the ${label}.` }, { status: 400 });
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Validate sessions exist, are upcoming/active and have space
-  const dates: string[] = [];
+  const days: { date: string; note: string }[] = [];
   for (const id of sessionIds) {
     const s = db
       .prepare(
@@ -68,12 +71,27 @@ export async function POST(req: NextRequest) {
          ) AS booked
          FROM sessions s WHERE s.id = ? AND s.active = 1`
       )
-      .get(id) as { id: number; date: string; capacity: number; booked: number } | undefined;
+      .get(id) as { id: number; date: string; capacity: number; booked: number; notes: string } | undefined;
     if (!s) return NextResponse.json({ error: 'One of the chosen days is no longer available.' }, { status: 400 });
     if (s.booked >= s.capacity) {
       return NextResponse.json({ error: `Sorry — ${s.date} is now fully booked.` }, { status: 409 });
     }
-    dates.push(s.date);
+    days.push({ date: s.date, note: s.notes || '' });
+  }
+  days.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Chipmunks must be 8 or over on their first booked day
+  const dob = new Date(str('child_dob') + 'T12:00:00Z');
+  if (!Number.isNaN(dob.getTime())) {
+    const firstDay = new Date(days[0].date + 'T12:00:00Z');
+    const age =
+      (firstDay.getTime() - dob.getTime()) / (365.25 * 24 * 3600 * 1000);
+    if (age < 8) {
+      return NextResponse.json(
+        { error: 'Cherwell Chipmunks must be 8 years old or over — sorry, little ones!' },
+        { status: 400 }
+      );
+    }
   }
 
   // Photo upload (optional but encouraged — shown on the check-in register)
@@ -100,8 +118,9 @@ export async function POST(req: NextRequest) {
           parent_name, parent_email, parent_phone, relationship,
           kin_name, kin_phone, kin_relationship,
           medical_conditions, allergies, dietary, medication, support_needs, gp_details,
+          employee_name, employee_relation,
           pickup_names, consent_photo, consent_medical, consent_activities, anything_else
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       )
       .run(
         ref,
@@ -122,6 +141,8 @@ export async function POST(req: NextRequest) {
         str('medication'),
         str('support_needs'),
         str('gp_details'),
+        str('employee_name'),
+        str('employee_relation'),
         str('pickup_names'),
         str('consent_photo') === 'yes' ? 1 : 0,
         1,
@@ -139,7 +160,7 @@ export async function POST(req: NextRequest) {
     ref,
     childFirst: str('child_first'),
     parentName: str('parent_name'),
-    dates: dates.sort(),
+    days,
   });
   await sendEmail({ to: email, subject, html, kind: 'confirmation', bookingId });
 

@@ -20,12 +20,13 @@ const activityStyles = [
 ];
 
 const marqueeItems = [
-  '🐐 Farm animals',
+  '🐐 Animal care',
   '✨ Immersive room',
-  '🎨 Arts & crafts',
-  '⚽ Games galore',
-  '🌱 Growing & nature',
-  '🧁 Snacks & baking',
+  '🗺️ Treasure hunts',
+  '🧁 Chipmunks bake-off',
+  '🏆 Games & competitions',
+  '🎨 Arts & craft',
+  '💦 Water fight day',
   '🐿️ New friends',
 ];
 
@@ -77,16 +78,16 @@ export default function HomePage() {
             <div>
               <Reveal>
                 <div className="flex flex-wrap gap-3">
-                  <span className="sticker border-teal/50 text-indigo -rotate-2">☀️ Summer 2026</span>
+                  <span className="sticker border-teal/50 text-indigo -rotate-2">☀️ 3–7 & 10–14 August</span>
                   <span className="sticker border-pink/40 text-pink rotate-1">Ages {site.session.ageRange}</span>
-                  <span className="sticker border-indigo/20 text-indigo -rotate-1">📍 Heywood</span>
+                  <span className="sticker border-indigo/20 text-indigo -rotate-1">📍 The Cherwell Centre</span>
                 </div>
               </Reveal>
               <Reveal delay={100}>
                 <h1 className="mt-6 text-5xl sm:text-6xl lg:text-[4.6rem] font-bold leading-[1.04] text-indigo">
-                  School holidays,
+                  School holidays…
                   <br />
-                  the <span className="hl hl-teal text-pink">Chipmunks</span> way.
+                  <span className="hl hl-teal text-pink">don’t panic!</span>
                 </h1>
               </Reveal>
               <Reveal delay={180}>
@@ -118,10 +119,12 @@ export default function HomePage() {
               </Reveal>
               <Reveal delay={400}>
                 <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-bold text-ink/55">
-                  <span>🕘 {site.session.startTime}–{site.session.endTime}</span>
-                  <span>💷 £{site.session.pricePerDay} per day</span>
-                  <span>🏡 {site.venue.name}</span>
+                  <span>🕘 Drop off {site.session.dropOffFrom} · pick up {site.session.endTime}</span>
+                  <span>💷 £{site.session.pricePerDay} a day, lunch included</span>
                 </div>
+                <p className="mt-3 text-sm font-bold text-pink">
+                  💗 Exclusively for children & grandchildren of {site.orgName} employees
+                </p>
               </Reveal>
             </div>
 
@@ -178,15 +181,15 @@ export default function HomePage() {
           </div>
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-5 text-center">
             {[
-              { end: 6, suffix: ' hours', label: 'of non-stop fun, every day' },
-              { end: 20, suffix: ' places', label: 'a day, so no one gets lost in a crowd' },
-              { end: 1, suffix: ' farm', label: 'full of animals to meet & feed' },
-              { end: 100, suffix: '%', label: 'run by trained Activity Champions' },
+              { end: 10, suffix: ' days', label: 'of summer day camp across two August weeks' },
+              { end: 15, prefix: '£', suffix: ' a day', label: 'with lunch included — pay in advance' },
+              { end: 20, suffix: ' places', label: 'a day — first come, first served' },
+              { end: 8, suffix: '+', label: 'years old — this camp is for the big kids' },
             ].map((s, i) => (
               <Reveal key={s.label} delay={i * 80} className="zoom">
                 <div className="group rounded-blob bg-white/[0.07] border border-white/10 px-4 py-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.14] hover:-translate-y-1">
                   <div className="font-display font-bold text-3xl sm:text-4xl text-teal">
-                    <CountUp end={s.end} suffix={s.suffix} />
+                    <CountUp end={s.end} prefix={'prefix' in s ? s.prefix : ''} suffix={s.suffix} />
                   </div>
                   <div className="mt-1.5 text-sm text-white/65 font-bold">{s.label}</div>
                 </div>
@@ -288,10 +291,13 @@ export default function HomePage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <Reveal>
               <Kicker className="border-indigo/20 text-indigo rotate-1">🎟️ GRAB A TICKET</Kicker>
-              <h2 className="mt-5 text-4xl sm:text-5xl font-bold text-indigo text-center">Upcoming dates</h2>
+              <h2 className="mt-5 text-4xl sm:text-5xl font-bold text-indigo text-center">Summer 2026 dates</h2>
               <p className="mt-4 text-center text-lg text-ink/60">
-                £{site.session.pricePerDay} per child per day · {site.session.startTime}–{site.session.endTime} ·
-                drop-off from {site.session.dropOffFrom}
+                £{site.session.pricePerDay} per child per day, lunch included · drop off{' '}
+                {site.session.dropOffFrom}, pick up {site.session.endTime}
+              </p>
+              <p className="mt-2 text-center text-sm font-bold text-pink">
+                Payment in advance · no refunds for cancellations · first come, first served
               </p>
             </Reveal>
             {sessions.length === 0 ? (
@@ -327,7 +333,8 @@ export default function HomePage() {
                         <div className="flex flex-1 items-center justify-between gap-2 p-4">
                           <div>
                             <div className="font-display font-bold text-indigo">{weekdayLong(s.date)}</div>
-                            <div className="text-sm text-ink/55 font-bold">{s.label || 'Holiday club day'}</div>
+                            <div className="text-sm text-ink/55 font-bold">{s.label || 'Day camp'}</div>
+                            {s.notes && <div className="text-xs font-bold text-pink mt-0.5">💦 {s.notes}</div>}
                           </div>
                           {full ? (
                             <span className="rounded-full bg-indigo/10 px-3 py-1.5 text-xs font-bold text-indigo/60">

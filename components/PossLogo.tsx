@@ -40,7 +40,7 @@ export function ChipmunksLockup({ light = false }: { light?: boolean }) {
       <PossMark className="h-10 w-auto shrink-0" />
       <span className="leading-none">
         <span className={`block font-display font-bold text-xl ${light ? 'text-white' : 'text-indigo'}`}>
-          The Chipmunks
+          Cherwell Chipmunks
         </span>
         <span className="block text-[11px] font-body font-bold tracking-wide">
           <span className={light ? 'text-white/60' : 'text-ink/50'}>at </span>

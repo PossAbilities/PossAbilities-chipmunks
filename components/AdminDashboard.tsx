@@ -32,6 +32,8 @@ interface Booking {
   medication: string;
   support_needs: string;
   gp_details: string;
+  employee_name: string;
+  employee_relation: string;
   pickup_names: string;
   consent_photo: number;
   anything_else: string;
@@ -41,6 +43,7 @@ interface SessionRow {
   id: number;
   date: string;
   label: string;
+  notes: string;
   capacity: number;
   active: number;
   booked: number;
@@ -345,6 +348,10 @@ function FragmentRow({
               <Detail label="Medication" value={b.medication} />
               <Detail label="Support needs" value={b.support_needs} />
               <Detail label="GP" value={b.gp_details} />
+              <Detail
+                label="PossAbilities employee"
+                value={b.employee_name ? `${b.employee_name} (${b.employee_relation || '—'})` : ''}
+              />
               <Detail label="Photo consent" value={b.consent_photo ? 'Yes' : 'No'} />
               <Detail label="Anything else" value={b.anything_else} />
               <Detail label="Booked" value={b.created_at} />
@@ -447,6 +454,7 @@ function DaysTab({ sessions, reload }: { sessions: SessionRow[]; reload: () => v
             <tr>
               <th>Date</th>
               <th>Label</th>
+              <th>Note to families (shown on site & in reminder emails)</th>
               <th>Booked / capacity</th>
               <th>Visible</th>
               <th></th>
@@ -461,6 +469,14 @@ function DaysTab({ sessions, reload }: { sessions: SessionRow[]; reload: () => v
                     className="field-input !py-1.5 !px-3 !rounded-lg"
                     defaultValue={s.label}
                     onBlur={(e) => e.target.value !== s.label && patch(s.id, { label: e.target.value })}
+                  />
+                </td>
+                <td>
+                  <input
+                    className="field-input !py-1.5 !px-3 !rounded-lg min-w-[220px]"
+                    placeholder="e.g. Bring spare clothes for the water fight!"
+                    defaultValue={s.notes}
+                    onBlur={(e) => e.target.value !== s.notes && patch(s.id, { notes: e.target.value })}
                   />
                 </td>
                 <td className="whitespace-nowrap">

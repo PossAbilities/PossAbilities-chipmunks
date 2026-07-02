@@ -13,13 +13,14 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const body = await req.json().catch(() => ({}));
   const db = getDb();
   const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(Number(id)) as
-    | { label: string; capacity: number; active: number }
+    | { label: string; capacity: number; active: number; notes: string }
     | undefined;
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  db.prepare('UPDATE sessions SET label = ?, capacity = ?, active = ? WHERE id = ?').run(
+  db.prepare('UPDATE sessions SET label = ?, capacity = ?, active = ?, notes = ? WHERE id = ?').run(
     body.label !== undefined ? String(body.label).trim() : session.label,
     body.capacity !== undefined ? Math.max(1, Number(body.capacity) || 1) : session.capacity,
     body.active !== undefined ? (body.active ? 1 : 0) : session.active,
+    body.notes !== undefined ? String(body.notes).trim() : session.notes,
     Number(id)
   );
   return NextResponse.json({ ok: true });

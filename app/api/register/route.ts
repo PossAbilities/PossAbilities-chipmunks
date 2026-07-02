@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
           `SELECT bd.id AS booking_day_id, bd.checked_in_at, bd.checked_in_by, bd.checked_out_at,
                   b.id AS booking_id, b.ref, b.child_first, b.child_last, b.child_dob, b.photo,
                   b.parent_name, b.parent_phone, b.kin_name, b.kin_phone, b.kin_relationship,
+                  b.employee_name, b.employee_relation,
                   b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs,
                   b.pickup_names, b.consent_photo, b.anything_else
            FROM booking_days bd

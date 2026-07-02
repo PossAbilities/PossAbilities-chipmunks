@@ -18,6 +18,8 @@ interface Child {
   kin_name: string;
   kin_phone: string;
   kin_relationship: string;
+  employee_name: string;
+  employee_relation: string;
   medical_conditions: string;
   allergies: string;
   dietary: string;
@@ -255,6 +257,10 @@ export default function ChampionRegister({
                     <Info label="Parent / guardian" value={`${c.parent_name} · ${c.parent_phone}`} strong />
                     <Info label="Next of kin" value={[c.kin_name, c.kin_phone, c.kin_relationship].filter(Boolean).join(' · ')} />
                     <Info label="Allowed to collect" value={c.pickup_names} strong />
+                    <Info
+                      label="PossAbilities employee"
+                      value={c.employee_name ? `${c.employee_name} (${c.employee_relation || '—'})` : ''}
+                    />
                     <Info label="Medical conditions" value={c.medical_conditions} warn />
                     <Info label="Allergies" value={c.allergies} warn />
                     <Info label="Medication" value={c.medication} warn />

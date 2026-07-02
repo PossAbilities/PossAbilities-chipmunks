@@ -41,7 +41,7 @@ function shell(title: string, preheader: string, body: string): string {
   <!-- Header -->
   <tr><td style="background-color:${BRAND.purple};border-radius:24px 24px 0 0;padding:32px 40px;text-align:center;">
     <div style="font-size:44px;line-height:1;">🐿️</div>
-    <div style="color:#ffffff;font-size:28px;font-weight:800;letter-spacing:0.5px;padding-top:8px;">The Chipmunks</div>
+    <div style="color:#ffffff;font-size:28px;font-weight:800;letter-spacing:0.5px;padding-top:8px;">Cherwell Chipmunks</div>
     <div style="font-size:15px;font-weight:700;padding-top:4px;">
       <span style="color:#B9B4D8;">at </span><span style="color:${BRAND.pink};">Poss</span><span style="color:#ffffff;">Abilities</span>
     </div>
@@ -65,7 +65,7 @@ function shell(title: string, preheader: string, body: string): string {
       <a href="mailto:${esc(site.contact.email)}" style="color:${BRAND.sunshine};text-decoration:none;">${esc(site.contact.email)}</a>
       &nbsp;·&nbsp; ${esc(site.contact.phone)}
     </div>
-    <div style="color:#8F89A8;font-size:12px;padding-top:12px;">You’re receiving this email because you booked a place at The Chipmunks holiday club.</div>
+    <div style="color:#8F89A8;font-size:12px;padding-top:12px;">You’re receiving this email because you booked a place at the Cherwell Chipmunks Day Camp.</div>
   </td></tr>
 
 </table>
@@ -75,13 +75,14 @@ function shell(title: string, preheader: string, body: string): string {
 </html>`;
 }
 
-function daysTable(dates: string[]): string {
-  const rows = dates
+function daysTable(days: { date: string; note?: string }[]): string {
+  const rows = days
     .map(
       (d, i) => `<tr>
       <td style="padding:10px 16px;border-top:${i === 0 ? 'none' : `1px solid #D6EEEE`};">
         <span style="display:inline-block;background-color:${BRAND.purple};color:#fff;border-radius:999px;font-size:12px;font-weight:700;padding:3px 10px;margin-right:10px;">Day ${i + 1}</span>
-        <span style="color:${BRAND.ink};font-size:15px;font-weight:700;">${esc(formatDateLong(d))}</span>
+        <span style="color:${BRAND.ink};font-size:15px;font-weight:700;">${esc(formatDateLong(d.date))}</span>
+        ${d.note ? `<div style="color:${BRAND.acorn};font-size:13px;font-weight:700;padding:4px 0 0 2px;">💦 ${esc(d.note)}</div>` : ''}
       </td></tr>`
     )
     .join('');
@@ -100,15 +101,15 @@ export interface BookingEmailData {
   ref: string;
   childFirst: string;
   parentName: string;
-  dates: string[]; // ISO dates
+  days: { date: string; note?: string }[]; // ISO dates + optional day note
 }
 
 export function confirmationEmail(b: BookingEmailData): { subject: string; html: string } {
-  const subject = `🐿️ ${b.childFirst} is booked in at The Chipmunks — ${b.ref}`;
+  const subject = `🐿️ ${b.childFirst} is booked in at Cherwell Chipmunks — ${b.ref}`;
   const body = `
     <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">Hooray, ${esc(b.parentName)}! 🎉</div>
     <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
-      <strong style="color:${BRAND.ink};">${esc(b.childFirst)}</strong> has a place at The Chipmunks holiday club.
+      <strong style="color:${BRAND.ink};">${esc(b.childFirst)}</strong> has a place at the Cherwell Chipmunks Day Camp.
       We can’t wait to meet them — the animals are already excited.
     </p>
 
@@ -119,18 +120,23 @@ export function confirmationEmail(b: BookingEmailData): { subject: string; html:
       </td></tr>
     </table>
 
-    <div style="color:${BRAND.ink};font-size:16px;font-weight:800;padding-top:18px;">${esc(b.childFirst)}’s day${b.dates.length > 1 ? 's' : ''} with us</div>
-    ${daysTable(b.dates)}
+    <div style="color:${BRAND.ink};font-size:16px;font-weight:800;padding-top:18px;">${esc(b.childFirst)}’s day${b.days.length > 1 ? 's' : ''} with us</div>
+    ${daysTable(b.days)}
 
+    ${infoCard(
+      BRAND.pink,
+      '💷 Payment',
+      `The camp costs <strong>£${site.session.pricePerDay} per day (lunch included)</strong> — a total of <strong>£${site.session.pricePerDay * b.days.length}</strong> for this booking. Payment is in advance, and we’re unable to offer refunds for cancellations. We’ll be in touch with payment details.`
+    )}
     ${infoCard(
       BRAND.leaf,
       '🎒 What to bring',
-      site.whatToBring.map(esc).join(' &nbsp;·&nbsp; ')
+      `${site.whatToBring.map(esc).join(' &nbsp;·&nbsp; ')}<br><em>Lunch is included — no packed lunch needed!</em>`
     )}
     ${infoCard(
       BRAND.acorn,
       '🕘 Drop-off & pick-up',
-      `Doors open from <strong>${esc(site.session.dropOffFrom)}</strong> and the fun runs from <strong>${esc(site.session.startTime)}</strong> to <strong>${esc(site.session.endTime)}</strong>. An Activity Champion will check ${esc(b.childFirst)} in when you arrive.`
+      `Drop off from <strong>${esc(site.session.dropOffFrom)}</strong> and pick up at <strong>${esc(site.session.endTime)}</strong>. An Activity Champion will check ${esc(b.childFirst)} in when you arrive.`
     )}
 
     <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:18px 0 0;">
@@ -144,19 +150,20 @@ export function confirmationEmail(b: BookingEmailData): { subject: string; html:
   return { subject, html: shell(subject, `${b.childFirst} is booked in — reference ${b.ref}`, body) };
 }
 
-export function reminderEmail(b: BookingEmailData & { date: string }): { subject: string; html: string } {
-  const subject = `⏰ See you tomorrow, ${b.childFirst}! The Chipmunks — ${formatDateLong(b.date)}`;
+export function reminderEmail(b: BookingEmailData & { date: string; note?: string }): { subject: string; html: string } {
+  const subject = `⏰ See you tomorrow, ${b.childFirst}! Cherwell Chipmunks — ${formatDateLong(b.date)}`;
   const body = `
     <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">Tomorrow’s the big day! 🐿️</div>
     <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
       Hi ${esc(b.parentName)} — just a friendly nudge that <strong style="color:${BRAND.ink};">${esc(b.childFirst)}</strong>
-      is booked in at The Chipmunks <strong style="color:${BRAND.ink};">tomorrow, ${esc(formatDateLong(b.date))}</strong>.
+      is booked in at Cherwell Chipmunks <strong style="color:${BRAND.ink};">tomorrow, ${esc(formatDateLong(b.date))}</strong>.
     </p>
 
+    ${b.note ? infoCard(BRAND.pink, '💦 Special note for tomorrow', esc(b.note)) : ''}
     ${infoCard(
       BRAND.acorn,
       '🕘 The plan',
-      `Drop-off from <strong>${esc(site.session.dropOffFrom)}</strong> at ${esc(site.venue.name)}, ${esc(site.venue.addressLines.join(', '))}. Pick-up at <strong>${esc(site.session.endTime)}</strong>.`
+      `Drop-off from <strong>${esc(site.session.dropOffFrom)}</strong> at ${esc(site.venue.name)}, ${esc(site.venue.addressLines.join(', '))}. Pick-up at <strong>${esc(site.session.endTime)}</strong>. Lunch is included.`
     )}
     ${infoCard(
       BRAND.leaf,

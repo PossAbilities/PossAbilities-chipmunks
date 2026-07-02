@@ -16,6 +16,7 @@ export default function BookPage() {
     id: s.id,
     date: s.date,
     label: s.label,
+    note: s.notes,
     spacesLeft: Math.max(0, s.capacity - (s.booked || 0)),
   }));
 
@@ -26,8 +27,11 @@ export default function BookPage() {
         <div className="text-center">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-indigo">Book a day at Chipmunks</h1>
           <p className="mt-3 text-lg text-ink/60">
-            One form per child — it takes about 3 minutes. £{site.session.pricePerDay} per day,{' '}
-            {site.session.startTime}–{site.session.endTime}.
+            One form per child — it takes about 3 minutes. £{site.session.pricePerDay} per day including
+            lunch, drop off {site.session.dropOffFrom}, pick up {site.session.endTime}.
+          </p>
+          <p className="mt-2 text-sm font-bold text-pink">
+            For children & grandchildren of PossAbilities employees, aged 8+.
           </p>
         </div>
         <div className="mt-10">

@@ -25,19 +25,17 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   db.prepare('UPDATE bookings SET status = ? WHERE id = ?').run(body.status, booking.id);
 
   if (body.status === 'cancelled' && booking.status !== 'cancelled') {
-    const dates = (
-      db
-        .prepare(
-          `SELECT s.date FROM booking_days bd JOIN sessions s ON s.id = bd.session_id
-           WHERE bd.booking_id = ? ORDER BY s.date`
-        )
-        .all(booking.id) as { date: string }[]
-    ).map((r) => r.date);
+    const days = db
+      .prepare(
+        `SELECT s.date FROM booking_days bd JOIN sessions s ON s.id = bd.session_id
+         WHERE bd.booking_id = ? ORDER BY s.date`
+      )
+      .all(booking.id) as { date: string }[];
     const { subject, html } = cancellationEmail({
       ref: booking.ref,
       childFirst: booking.child_first,
       parentName: booking.parent_name,
-      dates,
+      days,
     });
     await sendEmail({
       to: booking.parent_email,

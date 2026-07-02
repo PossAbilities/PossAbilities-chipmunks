@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
         id: s.id,
         date: s.date,
         label: s.label,
+        note: s.notes,
         spacesLeft: Math.max(0, s.capacity - (s.booked || 0)),
       }));
   return NextResponse.json({ sessions });

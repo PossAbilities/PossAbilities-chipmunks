@@ -18,7 +18,7 @@ export async function sendDueReminders(): Promise<{ sent: number; date: string }
   const due = db
     .prepare(
       `SELECT b.id AS booking_id, b.ref, b.child_first, b.parent_name, b.parent_email,
-              s.id AS session_id, s.date
+              s.id AS session_id, s.date, s.notes
        FROM booking_days bd
        JOIN bookings b ON b.id = bd.booking_id
        JOIN sessions s ON s.id = bd.session_id
@@ -37,6 +37,7 @@ export async function sendDueReminders(): Promise<{ sent: number; date: string }
     parent_email: string;
     session_id: number;
     date: string;
+    notes: string;
   }[];
 
   let sent = 0;
@@ -45,8 +46,9 @@ export async function sendDueReminders(): Promise<{ sent: number; date: string }
       ref: row.ref,
       childFirst: row.child_first,
       parentName: row.parent_name,
-      dates: [row.date],
+      days: [{ date: row.date }],
       date: row.date,
+      note: row.notes || undefined,
     });
     await sendEmail({
       to: row.parent_email,

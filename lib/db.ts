@@ -57,6 +57,9 @@ function migrate(db: Database.Database) {
       support_needs TEXT NOT NULL DEFAULT '',
       gp_details TEXT NOT NULL DEFAULT '',
 
+      employee_name TEXT NOT NULL DEFAULT '',      -- the PossAbilities employee
+      employee_relation TEXT NOT NULL DEFAULT '',  -- child | grandchild
+
       pickup_names TEXT NOT NULL DEFAULT '',       -- who may collect the child
       consent_photo INTEGER NOT NULL DEFAULT 0,
       consent_medical INTEGER NOT NULL DEFAULT 0,
@@ -87,27 +90,38 @@ function migrate(db: Database.Database) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  // Lightweight migrations for databases created before these columns
+  for (const col of ['employee_name', 'employee_relation']) {
+    try {
+      db.exec(`ALTER TABLE bookings ADD COLUMN ${col} TEXT NOT NULL DEFAULT ''`);
+    } catch {
+      /* column already exists */
+    }
+  }
 }
 
-/** Seed a few sample holiday dates so the site works out of the box.
- *  Real dates are managed in the Admin area. */
+/** Seed the Summer 2026 camp: Mon 3 – Fri 7 and Mon 10 – Fri 14 August.
+ *  Dates, labels, capacity and notes are all editable in the Admin area. */
 function seed(db: Database.Database) {
   const count = db.prepare('SELECT COUNT(*) AS n FROM sessions').get() as { n: number };
   if (count.n > 0) return;
   const insert = db.prepare(
-    'INSERT INTO sessions (date, label, capacity) VALUES (?, ?, ?)'
+    'INSERT INTO sessions (date, label, capacity, notes) VALUES (?, ?, ?, ?)'
   );
-  // Sample: Tue/Wed/Thu across the 2026 summer holidays — replace in Admin.
-  const weeks = ['2026-07-27', '2026-08-03', '2026-08-10', '2026-08-17'];
-  const labels = ['Farmyard Fun', 'Wild Wednesday', 'Big Adventure Day'];
-  for (const monday of weeks) {
-    const base = new Date(monday + 'T12:00:00Z');
-    for (let i = 0; i < 3; i++) {
-      const d = new Date(base);
-      d.setUTCDate(base.getUTCDate() + 1 + i); // Tue, Wed, Thu
-      insert.run(d.toISOString().slice(0, 10), labels[i], 20);
-    }
-  }
+  const days: [string, string, string][] = [
+    ['2026-08-03', 'Animal Antics Monday', ''],
+    ['2026-08-04', 'Treasure Hunt Tuesday', ''],
+    ['2026-08-05', 'Water Fight Wednesday', 'Bring spare clothes and a towel if you’d like to join the water fight! 💦'],
+    ['2026-08-06', 'Bake-Off Thursday', ''],
+    ['2026-08-07', 'Big Games Friday', ''],
+    ['2026-08-10', 'Animal Antics Monday', ''],
+    ['2026-08-11', 'Treasure Hunt Tuesday', ''],
+    ['2026-08-12', 'Wild Art Wednesday', ''],
+    ['2026-08-13', 'Bake-Off Thursday', ''],
+    ['2026-08-14', 'Grand Finale Friday', ''],
+  ];
+  for (const [date, label, notes] of days) insert.run(date, label, 20, notes);
 }
 
 export interface SessionRow {

@@ -10,7 +10,7 @@ export default function SiteFooter() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 pb-14 grid gap-10 sm:grid-cols-3">
           <div>
             <div className="font-display font-bold text-2xl">
-              🐿️ The Chipmunks
+              🐿️ Cherwell Chipmunks
               <span className="block text-sm mt-1">
                 <span className="text-white/60">at </span>
                 <span className="text-pink">Poss</span>

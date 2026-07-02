@@ -7,6 +7,7 @@ interface SessionOption {
   id: number;
   date: string;
   label: string;
+  note?: string;
   spacesLeft: number;
 }
 
@@ -55,6 +56,8 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     support_needs: '',
     parent_name: '',
     relationship: '',
+    employee_name: '',
+    employee_relation: '',
     parent_email: '',
     parent_phone: '',
     kin_name: '',
@@ -72,7 +75,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     consent_photo: false,
   });
 
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setF((prev) => ({
       ...prev,
       [k]: e.target instanceof HTMLInputElement && e.target.type === 'checkbox' ? e.target.checked : e.target.value,
@@ -95,13 +98,25 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     switch (current) {
       case 0:
         return selectedDays.length ? '' : 'Pick at least one day to continue.';
-      case 1:
+      case 1: {
         if (!f.child_first.trim() || !f.child_last.trim()) return 'Please tell us your child’s name.';
+        if (!f.child_dob) return 'Please tell us your child’s date of birth — Chipmunks must be 8 or over.';
+        const firstDay = chosenDates[0];
+        if (firstDay) {
+          const age =
+            (new Date(firstDay).getTime() - new Date(f.child_dob).getTime()) /
+            (365.25 * 24 * 3600 * 1000);
+          if (age < 8) return 'Cherwell Chipmunks must be 8 years old or over — sorry, little ones!';
+        }
         return '';
+      }
       case 2:
         if (!f.parent_name.trim()) return 'Please tell us your name.';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.parent_email)) return 'Please enter a valid email address.';
         if (!f.parent_phone.trim()) return 'Please enter a phone number we can reach you on.';
+        if (!f.employee_name.trim())
+          return 'Please tell us which PossAbilities employee your child belongs to — the camp is for staff families.';
+        if (!f.employee_relation) return 'Please choose the child’s relationship to the PossAbilities employee.';
         return '';
       case 3:
         return '';
@@ -229,7 +244,8 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
           <div className="animate-pop-in">
             <h2 className="text-2xl font-extrabold text-ink">Which days would you like?</h2>
             <p className="mt-1 text-ink/55">
-              Pick as many as you like — £{site.session.pricePerDay} per day.
+              Pick as many as you like — £{site.session.pricePerDay} per day, lunch included. Places are
+              first come, first served.
             </p>
             {sessions.length === 0 && (
               <p className="mt-6 text-ink/60">
@@ -265,8 +281,11 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                     <span>
                       <span className="block font-display font-extrabold text-ink">{formatDate(s.date)}</span>
                       <span className="text-sm text-ink/55 font-bold">
-                        {full ? 'Fully booked' : s.label || 'Holiday club day'}
+                        {full ? 'Fully booked' : s.label || 'Day camp'}
                       </span>
+                      {!full && s.note && (
+                        <span className="block text-xs font-bold text-pink mt-0.5">{s.note}</span>
+                      )}
                     </span>
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-sm font-extrabold transition-all ${
@@ -300,8 +319,9 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               </div>
             </div>
             <div className="sm:w-1/2">
-              <label className="field-label" htmlFor="child_dob">Date of birth</label>
+              <label className="field-label" htmlFor="child_dob">Date of birth *</label>
               <input id="child_dob" type="date" className={inputCls} value={f.child_dob} onChange={set('child_dob')} />
+              <p className="field-hint">Chipmunks must be 8 years old or over.</p>
             </div>
 
             {/* Photo */}
@@ -395,6 +415,32 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               </div>
             </div>
 
+            <div className="rounded-2xl bg-pink/5 border border-pink/20 p-5 space-y-4">
+              <div className="font-bold text-ink">PossAbilities family connection *</div>
+              <p className="text-sm text-ink/55 -mt-2">
+                Cherwell Chipmunks is for children and grandchildren of PossAbilities employees.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="field-label" htmlFor="employee_name">Name of the PossAbilities employee</label>
+                  <input id="employee_name" className={inputCls} value={f.employee_name} onChange={set('employee_name')} />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="employee_relation">The child is their…</label>
+                  <select
+                    id="employee_relation"
+                    className={inputCls}
+                    value={f.employee_relation}
+                    onChange={set('employee_relation')}
+                  >
+                    <option value="">Choose…</option>
+                    <option value="child">Child</option>
+                    <option value="grandchild">Grandchild</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div className="rounded-2xl bg-mist border border-ink/8 p-5 space-y-4">
               <div className="font-bold text-ink">Second emergency contact (next of kin)</div>
               <div className="grid sm:grid-cols-3 gap-4">
@@ -481,11 +527,17 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                 {chosenDates.map(formatDate).join(' · ')}
               </div>
               <div>
-                Total: <strong>£{chosenDates.length * site.session.pricePerDay}</strong> (payment details in your
-                confirmation email)
+                Total: <strong>£{chosenDates.length * site.session.pricePerDay}</strong> — lunch included
               </div>
               <div className="text-ink/55">
                 Contact: {f.parent_name} · {f.parent_email} · {f.parent_phone}
+              </div>
+              <div className="text-ink/55">
+                PossAbilities employee: {f.employee_name} ({f.employee_relation || '—'})
+              </div>
+              <div className="mt-2 rounded-xl bg-pink/10 border border-pink/25 px-3 py-2 text-xs font-bold text-pink-deep">
+                Payment is in advance and we’re unable to refund cancellations. We’ll send payment details with
+                your confirmation.
               </div>
             </div>
 

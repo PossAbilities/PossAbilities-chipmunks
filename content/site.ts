@@ -1,20 +1,23 @@
 /**
  * ─────────────────────────────────────────────────────────────────
- *  CHIPMUNKS SITE CONTENT
+ *  CHERWELL CHIPMUNKS SITE CONTENT
  *  Everything a non-developer might want to change lives here:
  *  copy, prices, contact details, activities, FAQs.
- *  Session dates are managed in the Admin area, not here.
+ *  Camp dates are managed in the Admin area, not here.
  * ─────────────────────────────────────────────────────────────────
  */
 
 export const site = {
-  clubName: 'The Chipmunks',
+  clubName: 'Cherwell Chipmunks',
   orgName: 'PossAbilities',
-  strapline: 'School holiday adventures at PossAbilities',
-  intro:
-    'The Chipmunks is our school holiday club where children come to the PossAbilities hub in Heywood for big days out without going anywhere at all — feeding and caring for the animals on our farm, exploring the immersive sensory room, and joining in games, crafts and activities led by our friendly Activity Champions.',
-
+  strapline: 'School holidays… don’t panic!',
   tagline: 'Live The Life You Choose',
+  intro:
+    'Bring your children or grandchildren to the Cherwell Chipmunks Day Camp for a full day of fun activities and tasks out in the open air — helping look after our animals, exploring the immersive room, treasure hunts, the famous Chipmunks bake-off, games, competitions and much more.',
+
+  // Who can come — the camp is a staff perk
+  eligibility:
+    'Cherwell Chipmunks must be children or grandchildren of PossAbilities employees, and 8 years old or over.',
 
   // Contact + venue (from the PossAbilities brand manual)
   venue: {
@@ -29,19 +32,30 @@ export const site = {
   },
 
   session: {
-    startTime: '9:30am',
-    endTime: '3:30pm',
-    dropOffFrom: '9:15am',
-    pricePerDay: 25, // £ per child per day — TODO: confirm
-    ageRange: '5–13',
+    startTime: '8:30am',
+    endTime: '4:00pm',
+    dropOffFrom: '8:30am',
+    pricePerDay: 15, // £ per child per day — includes lunch
+    priceIncludes: 'lunch included',
+    ageRange: '8+',
   },
+
+  // The deal — shown on the site and echoed in emails
+  theDeal: [
+    'Chipmunks have to be 8 years old or over',
+    '£15 per day — lunch included',
+    'For children & grandchildren of PossAbilities employees',
+    'Drop off 8:30am · pick up 4:00pm',
+    'Places are limited — first come, first served',
+    'Payment in advance · no refunds for cancellations',
+  ],
 
   activities: [
     {
       emoji: '🐐',
-      title: 'Down on the farm',
+      title: 'Help look after our animals',
       blurb:
-        'Meet, feed and help care for our animals. Mucking in is all part of the fun — wellies at the ready!',
+        'Feeding rounds, grooming and mucking in — our animals love Chipmunks, and the jobs are real. Wellies at the ready!',
       color: 'leaf',
     },
     {
@@ -52,50 +66,50 @@ export const site = {
       color: 'sky',
     },
     {
-      emoji: '🎨',
-      title: 'Arts & crafts',
+      emoji: '🗺️',
+      title: 'Treasure hunts',
       blurb:
-        'Get gloriously messy with painting, model-making and seasonal crafts to take home and show off.',
+        'Clues, maps and mysteries all over the Cherwell Centre — bring your best detective brain.',
       color: 'acorn',
     },
     {
-      emoji: '🏃',
-      title: 'Games galore',
+      emoji: '🧁',
+      title: 'Chipmunks bake-off',
       blurb:
-        'Team games, treasure hunts, parachute games and sports — indoors and out, whatever the weather.',
+        'Ready, set… BAKE! Our famous bake-off crowns a star baker every camp. Judging is delicious.',
+      color: 'sunshine',
+    },
+    {
+      emoji: '🏆',
+      title: 'Games & competitions',
+      blurb:
+        'Team games, sports and daft challenges out in the open air — with proper bragging rights at stake.',
       color: 'brand',
     },
     {
-      emoji: '🌱',
-      title: 'Growing & nature',
+      emoji: '🎨',
+      title: 'Arts & craft',
       blurb:
-        'Plant, dig and discover in our growing spaces, and learn where our food really comes from.',
+        'Get gloriously messy with painting, model-making and crafts to take home and show off.',
       color: 'leaf',
-    },
-    {
-      emoji: '🧁',
-      title: 'Snacks & baking',
-      blurb:
-        'Little chefs welcome! We bake, decorate and (most importantly) taste our own creations.',
-      color: 'sunshine',
     },
   ],
 
   typicalDay: [
-    { time: '9:15am', title: 'Doors open', detail: 'Drop off, settle in and say hello to the team.' },
-    { time: '9:45am', title: 'Morning circle', detail: 'We plan our day together and warm up with a game.' },
-    { time: '10:15am', title: 'Farm time', detail: 'Feeding rounds and animal care in small groups.' },
-    { time: '12:00pm', title: 'Lunch', detail: 'Packed lunches together — picnic outside when it’s sunny.' },
+    { time: '8:30am', title: 'Doors open', detail: 'Drop off, settle in and say hello to the team.' },
+    { time: '9:00am', title: 'Morning circle', detail: 'We plan our day together and warm up with a game.' },
+    { time: '9:30am', title: 'Animal jobs', detail: 'Feeding rounds and animal care in small groups.' },
+    { time: '12:00pm', title: 'Lunch — on us!', detail: 'A proper lunch for every Chipmunk, included in the day.' },
     { time: '1:00pm', title: 'Immersive room & crafts', detail: 'Groups rotate between the immersive room and craft tables.' },
-    { time: '2:30pm', title: 'Big game finale', detail: 'Everyone together for the afternoon’s big game.' },
-    { time: '3:30pm', title: 'Home time', detail: 'Pick up, plus a rundown of what we got up to.' },
+    { time: '2:30pm', title: 'Big game finale', detail: 'Everyone together for the afternoon’s big game or competition.' },
+    { time: '4:00pm', title: 'Home time', detail: 'Pick up, plus a rundown of what we got up to.' },
   ],
 
   // Placeholder quotes — swap for real family feedback when you have it
   testimonials: [
     {
       quote: 'He talks about the animals for days afterwards. Chipmunks is the first club he actually asks to go back to.',
-      name: 'Parent of a 7-year-old Chipmunk',
+      name: 'Parent of a 9-year-old Chipmunk',
     },
     {
       quote: 'The team knew about her allergies before we even reminded them. We felt completely at ease all day.',
@@ -103,38 +117,44 @@ export const site = {
     },
     {
       quote: 'The immersive room blew his mind — he told everyone he went to space during the holidays!',
-      name: 'Dad of a 9-year-old Chipmunk',
+      name: 'Grandad of a 10-year-old Chipmunk',
     },
   ],
 
   faqs: [
     {
-      q: 'What ages is Chipmunks for?',
-      a: 'Chipmunks welcomes children aged 5–13. Sessions are staffed by our trained Activity Champions, and we support children of all abilities — tell us what your child needs on the booking form and we will make it work.',
+      q: 'Who can come to Cherwell Chipmunks?',
+      a: 'The day camp is a PossAbilities staff perk: Chipmunks must be children or grandchildren of PossAbilities employees, and must be 8 years old or over. Places are limited and allocated on a first come, first served basis.',
+    },
+    {
+      q: 'How much does it cost, and is lunch included?',
+      a: 'It’s £15 per child per day, and yes — lunch is included, along with all activities and snacks. Payment is in advance, and we can’t offer refunds for cancellations.',
+    },
+    {
+      q: 'What are the times?',
+      a: 'Drop off from 8:30am and pick up at 4:00pm. An Activity Champion checks every child in on arrival and out at pick-up, and we will only release children to the adults you name on the booking form.',
     },
     {
       q: 'What should my child bring?',
-      a: 'A packed lunch, a water bottle, clothes that can get muddy, and wellies or sturdy shoes for the farm. We provide everything else, including snacks and all activity equipment.',
-    },
-    {
-      q: 'How do drop-off and pick-up work?',
-      a: 'Doors open from 9:15am and sessions finish at 3:30pm. An Activity Champion checks every child in on arrival and out at pick-up, and we will only release children to the adults you name on the booking form.',
+      a: 'A water bottle, clothes that can get muddy, and wellies or sturdy shoes for the animals. Lunch is provided. If they’re coming on the water fight day, pack spare clothes and a towel!',
     },
     {
       q: 'My child has a medical condition or allergy — can they come?',
       a: 'Almost always, yes. The booking form asks about medical conditions, allergies and medication so our team is fully prepared. If you would like to talk it through first, give us a call — we are very happy to help.',
     },
     {
-      q: 'How do I pay?',
-      a: 'Once you book you will receive a confirmation email with payment details. We will confirm your child’s place as soon as payment arrives.',
-    },
-    {
       q: 'What if I need to cancel?',
-      a: 'Plans change — just reply to your confirmation email or call us and we will cancel or move your booking. We ask for 48 hours’ notice where possible so we can offer the place to another family.',
+      a: 'Please let us know as soon as you can so we can offer the place to another family — but do note that payment is in advance and we’re unable to offer refunds for cancellations.',
     },
   ],
 
-  whatToBring: ['Packed lunch & water bottle', 'Clothes that can get muddy', 'Wellies or sturdy shoes', 'Sun cream & a hat (fingers crossed!)', 'A waterproof coat (just in case)'],
+  whatToBring: [
+    'A water bottle',
+    'Clothes that can get muddy',
+    'Wellies or sturdy shoes',
+    'Sun cream & a hat (fingers crossed!)',
+    'Spare clothes on water-fight day 💦',
+  ],
 };
 
 export type Site = typeof site;

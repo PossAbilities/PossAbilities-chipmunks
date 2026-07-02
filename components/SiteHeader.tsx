@@ -5,7 +5,7 @@ export default function SiteHeader() {
   return (
     <>
       <div className="bg-pink text-white text-center text-sm font-bold py-2 px-4">
-        ☀️ Summer 2026 dates are live — spaces go fast!{' '}
+        ☀️ Summer camp is back: 3–7 & 10–14 August · £15 a day incl. lunch · places are limited!{' '}
         <Link href="/book" className="underline decoration-white/60 underline-offset-2 hover:decoration-white">
           Book now →
         </Link>
