@@ -55,6 +55,7 @@ export async function GET(req: NextRequest) {
                 b.kin_name, b.kin_phone, b.kin_relationship, b.kin_address,
                 b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs, b.gp_details,
                 b.employee_name, b.employee_id, b.employee_relation, b.employee_email,
+                b.signed_name, b.signed_at,
                 b.pickup_names, b.consent_photo, b.anything_else,
                 (SELECT GROUP_CONCAT(s.date, '; ') FROM booking_days bd
                  JOIN sessions s ON s.id = bd.session_id

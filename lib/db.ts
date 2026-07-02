@@ -67,6 +67,10 @@ function migrate(db: Database.Database) {
       paid INTEGER NOT NULL DEFAULT 0,             -- payment received (marked by admin)
       paid_at TEXT,
 
+      signature TEXT NOT NULL DEFAULT '',          -- signature image filename
+      signed_name TEXT NOT NULL DEFAULT '',        -- typed full name at signing
+      signed_at TEXT NOT NULL DEFAULT '',          -- server timestamp of signing
+
       pickup_names TEXT NOT NULL DEFAULT '',       -- who may collect the child
       consent_photo INTEGER NOT NULL DEFAULT 0,
       consent_medical INTEGER NOT NULL DEFAULT 0,
@@ -109,6 +113,9 @@ function migrate(db: Database.Database) {
     `ALTER TABLE bookings ADD COLUMN child_address TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN parent_phone2 TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN kin_address TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN signature TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN signed_name TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN signed_at TEXT NOT NULL DEFAULT ''`,
   ];
   for (const sql of columnMigrations) {
     try {

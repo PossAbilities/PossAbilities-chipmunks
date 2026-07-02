@@ -30,6 +30,9 @@ interface Booking {
   kin_relationship: string;
   kin_address: string;
   employee_email: string;
+  signature: string;
+  signed_name: string;
+  signed_at: string;
   medical_conditions: string;
   allergies: string;
   dietary: string;
@@ -400,6 +403,22 @@ function FragmentRow({
               <Detail label="Photo consent" value={b.consent_photo ? 'Yes' : 'No'} />
               <Detail label="Anything else" value={b.anything_else} />
               <Detail label="Booked" value={b.created_at} />
+              <div>
+                <div className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40">Signed</div>
+                {b.signature ? (
+                  <div className="text-ink/80">
+                    {b.signed_name} · {b.signed_at.slice(0, 16).replace('T', ' ')}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/uploads/${b.signature}`}
+                      alt={`Signature of ${b.signed_name}`}
+                      className="mt-1 h-12 rounded-lg border border-ink/10 bg-white px-2"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-ink/30">—</div>
+                )}
+              </div>
             </div>
             <div className="px-4 pb-4 flex flex-wrap gap-2">
               {!b.paid ? (

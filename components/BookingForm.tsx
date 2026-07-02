@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { site } from '@/content/site';
+import SignaturePad from '@/components/SignaturePad';
 
 interface SessionOption {
   id: number;
@@ -48,6 +49,9 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
   const [photoPreview, setPhotoPreview] = useState('');
   const photoBlob = useRef<Blob | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const signatureBlob = useRef<Blob | null>(null);
+  const [signedName, setSignedName] = useState('');
+  const [hasSignature, setHasSignature] = useState(false);
 
   const [f, setF] = useState({
     child_first: '',
@@ -130,6 +134,8 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
       case 4:
         if (!f.consent_activities || !f.consent_medical)
           return 'The two required consents are needed before we can take the booking.';
+        if (!(signedName || f.parent_name).trim()) return 'Please type your full name to sign.';
+        if (!hasSignature) return 'Please add your signature in the box to complete the booking.';
         return '';
     }
     return '';
@@ -159,7 +165,9 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
         fd.set(k, typeof v === 'boolean' ? (v ? 'yes' : 'no') : v);
       }
       fd.set('session_ids', JSON.stringify(selectedDays));
+      fd.set('signed_name', (signedName || f.parent_name).trim());
       if (photoBlob.current) fd.set('photo', photoBlob.current, 'child.jpg');
+      if (signatureBlob.current) fd.set('signature', signatureBlob.current, 'signature.png');
       const res = await fetch('/api/bookings', { method: 'POST', body: fd });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || 'Something went wrong — please try again.');
@@ -632,6 +640,38 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                   </span>
                 </label>
               ))}
+            </div>
+
+            {/* Signature */}
+            <div className="rounded-2xl bg-mist border border-indigo/10 p-5">
+              <div className="font-bold text-ink">Sign to confirm *</div>
+              <p className="mt-1 text-sm text-ink/55 leading-relaxed">
+                By signing below I confirm that the information I’ve given is accurate and complete, that I’m
+                authorised to book for this child, and that I agree to the booking terms — £
+                {site.session.pricePerDay} per day paid in advance, with no refunds for cancellations.
+              </p>
+              <div className="mt-4">
+                <label className="field-label" htmlFor="signed_name">Full name</label>
+                <input
+                  id="signed_name"
+                  className={inputCls}
+                  placeholder={f.parent_name || 'Your full name'}
+                  value={signedName}
+                  onChange={(e) => setSignedName(e.target.value)}
+                />
+              </div>
+              <div className="mt-4">
+                <SignaturePad
+                  onChange={(blob) => {
+                    signatureBlob.current = blob;
+                    setHasSignature(!!blob);
+                  }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-ink/45">
+                Signed {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} —
+                we record the date and time with your booking.
+              </p>
             </div>
           </div>
         )}

@@ -110,6 +110,21 @@ export async function POST(req: NextRequest) {
     fs.writeFileSync(path.join(UPLOADS_DIR, photoName), Buffer.from(await photo.arrayBuffer()));
   }
 
+  // Signature (required) — drawn on the form, stored privately like photos
+  const signature = form.get('signature');
+  if (!(signature instanceof File) || signature.size === 0) {
+    return NextResponse.json({ error: 'Please sign the booking to confirm it.' }, { status: 400 });
+  }
+  if (signature.type !== 'image/png' || signature.size > 2 * 1024 * 1024) {
+    return NextResponse.json({ error: 'The signature could not be read — please try signing again.' }, { status: 400 });
+  }
+  if (!str('signed_name')) {
+    return NextResponse.json({ error: 'Please type your full name to sign.' }, { status: 400 });
+  }
+  const signatureName = 'sig-' + crypto.randomUUID() + '.png';
+  fs.writeFileSync(path.join(UPLOADS_DIR, signatureName), Buffer.from(await signature.arrayBuffer()));
+  const signedAt = new Date().toISOString();
+
   const ref = makeRef();
   const insert = db.transaction(() => {
     const res = db
@@ -120,8 +135,9 @@ export async function POST(req: NextRequest) {
           kin_name, kin_phone, kin_relationship, kin_address,
           medical_conditions, allergies, dietary, medication, support_needs, gp_details,
           employee_name, employee_id, employee_relation, employee_email,
+          signature, signed_name, signed_at,
           pickup_names, consent_photo, consent_medical, consent_activities, anything_else
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       )
       .run(
         ref,
@@ -149,6 +165,9 @@ export async function POST(req: NextRequest) {
         str('employee_id'),
         str('employee_relation'),
         str('employee_email'),
+        signatureName,
+        str('signed_name'),
+        signedAt,
         str('pickup_names'),
         str('consent_photo') === 'yes' ? 1 : 0,
         1,
