@@ -134,7 +134,7 @@ export default function HomePage() {
                 <span className="absolute -top-4 right-10 text-3xl text-pink animate-sparkle" aria-hidden>✦</span>
                 <span className="absolute top-[55%] -left-6 text-2xl text-teal animate-sparkle [animation-delay:1.2s]" aria-hidden>✦</span>
                 <Mascot className="relative z-10 w-[72%] mx-auto animate-float drop-shadow-2xl" />
-                <div className="absolute right-[-14%] top-[6%] z-20 rotate-2 rounded-2xl rounded-bl-none border-[3px] border-teal/60 bg-white shadow-lift px-4 py-2 text-sm font-display font-bold text-indigo animate-float-slow">
+                <div className="absolute right-[-8%] top-[-9%] z-20 rotate-2 rounded-2xl rounded-bl-none border-[3px] border-teal/60 bg-white shadow-lift px-4 py-2 text-sm font-display font-bold text-indigo animate-float-slow">
                   “{site.tagline}” 💬
                 </div>
               </div>
