@@ -57,6 +57,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     parent_name: '',
     relationship: '',
     employee_name: '',
+    employee_id: '',
     employee_relation: '',
     parent_email: '',
     parent_phone: '',
@@ -116,6 +117,8 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
         if (!f.parent_phone.trim()) return 'Please enter a phone number we can reach you on.';
         if (!f.employee_name.trim())
           return 'Please tell us which PossAbilities employee your child belongs to — the camp is for staff families.';
+        if (!f.employee_id.trim())
+          return 'Please enter the employee’s payroll or Element Suite ID so we can verify the booking.';
         if (!f.employee_relation) return 'Please choose the child’s relationship to the PossAbilities employee.';
         return '';
       case 3:
@@ -420,10 +423,15 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               <p className="text-sm text-ink/55 -mt-2">
                 Cherwell Chipmunks is for children and grandchildren of PossAbilities employees.
               </p>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label className="field-label" htmlFor="employee_name">Name of the PossAbilities employee</label>
                   <input id="employee_name" className={inputCls} value={f.employee_name} onChange={set('employee_name')} />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="employee_id">Payroll / Element Suite ID</label>
+                  <input id="employee_id" className={inputCls} value={f.employee_id} onChange={set('employee_id')} />
+                  <p className="field-hint">So we can verify the booking.</p>
                 </div>
                 <div>
                   <label className="field-label" htmlFor="employee_relation">The child is their…</label>
@@ -533,7 +541,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                 Contact: {f.parent_name} · {f.parent_email} · {f.parent_phone}
               </div>
               <div className="text-ink/55">
-                PossAbilities employee: {f.employee_name} ({f.employee_relation || '—'})
+                PossAbilities employee: {f.employee_name} · ID {f.employee_id} ({f.employee_relation || '—'})
               </div>
               <div className="mt-2 rounded-xl bg-pink/10 border border-pink/25 px-3 py-2 text-xs font-bold text-pink-deep">
                 Payment is in advance and we’re unable to refund cancellations. We’ll send payment details with

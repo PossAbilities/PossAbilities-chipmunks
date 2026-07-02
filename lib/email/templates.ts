@@ -126,7 +126,7 @@ export function confirmationEmail(b: BookingEmailData): { subject: string; html:
     ${infoCard(
       BRAND.pink,
       '💷 Payment',
-      `The camp costs <strong>£${site.session.pricePerDay} per day (lunch included)</strong> — a total of <strong>£${site.session.pricePerDay * b.days.length}</strong> for this booking. Payment is in advance, and we’re unable to offer refunds for cancellations. We’ll be in touch with payment details.`
+      `The camp costs <strong>£${site.session.pricePerDay} per day (lunch included)</strong> — a total of <strong>£${site.session.pricePerDay * b.days.length}</strong> for this booking. Payment is in advance, and we’re unable to offer refunds for cancellations. Keep an eye out for our payment email with all the ways to pay.`
     )}
     ${infoCard(
       BRAND.leaf,
@@ -181,6 +181,64 @@ export function reminderEmail(b: BookingEmailData & { date: string; note?: strin
       See you tomorrow!<br><strong style="color:${BRAND.ink};">The Chipmunks team at ${esc(site.orgName)}</strong>
     </p>`;
   return { subject, html: shell(subject, `Reminder: ${b.childFirst} is with us tomorrow`, body) };
+}
+
+/** Branded "ways to pay" email — sent by the admin team from the Admin area. */
+export function paymentEmail(b: BookingEmailData): { subject: string; html: string } {
+  const total = site.session.pricePerDay * b.days.length;
+  const subject = `💷 How to pay for ${b.childFirst}’s Chipmunks booking — ${b.ref}`;
+  const methods = site.paymentMethods
+    .map((m) => infoCard(BRAND.leaf, esc(m.title), esc(m.detail)))
+    .join('');
+  const body = `
+    <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">Time to bag ${esc(b.childFirst)}’s place! 🌰</div>
+    <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
+      Hi ${esc(b.parentName)} — here’s everything you need to pay for booking
+      <strong style="color:${BRAND.ink};">${esc(b.ref)}</strong>.
+    </p>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 4px;">
+      <tr><td style="background-color:${BRAND.pink};border-radius:12px;padding:12px 20px;">
+        <span style="color:#ffffff;font-size:13px;font-weight:700;">Amount due</span>
+        <span style="color:#ffffff;font-size:20px;font-weight:800;padding-left:12px;">£${total}</span>
+        <span style="color:#FBD5EA;font-size:13px;font-weight:700;padding-left:10px;">(${b.days.length} day${b.days.length === 1 ? '' : 's'} × £${site.session.pricePerDay}, lunch included)</span>
+      </td></tr>
+    </table>
+
+    <div style="color:${BRAND.ink};font-size:16px;font-weight:800;padding-top:16px;">Ways to pay</div>
+    ${methods}
+
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:18px 0 0;">
+      <strong style="color:${BRAND.ink};">Please quote your booking reference ${esc(b.ref)} when paying.</strong>
+      Payment is in advance and secures ${esc(b.childFirst)}’s place — places are limited and offered first come,
+      first served. We’re unable to offer refunds for cancellations.
+    </p>
+
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:14px 0 0;">
+      Any questions, just reply to this email or call <strong style="color:${BRAND.ink};">${esc(site.contact.phone)}</strong>.<br>
+      <strong style="color:${BRAND.ink};">The Chipmunks team at ${esc(site.orgName)}</strong>
+    </p>`;
+  return { subject, html: shell(subject, `£${total} due for booking ${b.ref} — ways to pay inside`, body) };
+}
+
+/** Sent (optionally) when the admin team marks a booking as paid. */
+export function receiptEmail(b: BookingEmailData): { subject: string; html: string } {
+  const subject = `✅ Payment received — ${b.childFirst} is all set for Chipmunks! ${b.ref}`;
+  const body = `
+    <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">All paid — thank you! 🎉</div>
+    <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
+      Hi ${esc(b.parentName)} — we’ve received your payment for booking
+      <strong style="color:${BRAND.ink};">${esc(b.ref)}</strong> and
+      <strong style="color:${BRAND.ink};">${esc(b.childFirst)}</strong>’s place is fully secured.
+      All that’s left is the fun bit.
+    </p>
+    <div style="color:${BRAND.ink};font-size:16px;font-weight:800;padding-top:18px;">${esc(b.childFirst)}’s day${b.days.length > 1 ? 's' : ''} with us</div>
+    ${daysTable(b.days)}
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:14px 0 0;">
+      We’ll send a reminder the day before each visit. See you soon!<br>
+      <strong style="color:${BRAND.ink};">The Chipmunks team at ${esc(site.orgName)}</strong>
+    </p>`;
+  return { subject, html: shell(subject, `Payment received for ${b.ref} — see you soon!`, body) };
 }
 
 export function cancellationEmail(b: BookingEmailData): { subject: string; html: string } {

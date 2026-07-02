@@ -40,6 +40,27 @@ export const site = {
     ageRange: '8+',
   },
 
+  /**
+   * Ways to pay — listed in the branded payment email the admin team
+   * sends from the Admin area. Replace with the real details before
+   * going live (these are placeholders).
+   */
+  paymentMethods: [
+    {
+      title: 'Bank transfer',
+      detail:
+        'Account name: PossAbilities CIC · Sort code: 00-00-00 · Account number: 00000000. Use your booking reference as the payment reference.',
+    },
+    {
+      title: 'Cash or card at the Cherwell Centre',
+      detail: 'Pop in and pay at reception — just quote your booking reference.',
+    },
+    {
+      title: 'Payroll deduction',
+      detail: 'PossAbilities employees can ask for the cost to be deducted from their next pay. Contact HR to arrange.',
+    },
+  ],
+
   // The deal — shown on the site and echoed in emails
   theDeal: [
     'Chipmunks have to be 8 years old or over',

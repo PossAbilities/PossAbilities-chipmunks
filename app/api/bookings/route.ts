@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     parent_email: 'email address',
     parent_phone: 'phone number',
     employee_name: 'name of the PossAbilities employee',
+    employee_id: 'employee’s payroll or Element Suite ID',
     employee_relation: 'child’s relationship to the employee',
   };
   for (const [key, label] of Object.entries(required)) {
@@ -118,9 +119,9 @@ export async function POST(req: NextRequest) {
           parent_name, parent_email, parent_phone, relationship,
           kin_name, kin_phone, kin_relationship,
           medical_conditions, allergies, dietary, medication, support_needs, gp_details,
-          employee_name, employee_relation,
+          employee_name, employee_id, employee_relation,
           pickup_names, consent_photo, consent_medical, consent_activities, anything_else
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       )
       .run(
         ref,
@@ -142,6 +143,7 @@ export async function POST(req: NextRequest) {
         str('support_needs'),
         str('gp_details'),
         str('employee_name'),
+        str('employee_id'),
         str('employee_relation'),
         str('pickup_names'),
         str('consent_photo') === 'yes' ? 1 : 0,

@@ -49,11 +49,11 @@ export async function GET(req: NextRequest) {
   } else {
     const data = db
       .prepare(
-        `SELECT b.ref, b.status, b.created_at, b.child_first, b.child_last, b.child_dob,
+        `SELECT b.ref, b.status, b.paid, b.paid_at, b.created_at, b.child_first, b.child_last, b.child_dob,
                 b.parent_name, b.parent_email, b.parent_phone, b.relationship,
                 b.kin_name, b.kin_phone, b.kin_relationship,
                 b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs, b.gp_details,
-                b.employee_name, b.employee_relation,
+                b.employee_name, b.employee_id, b.employee_relation,
                 b.pickup_names, b.consent_photo, b.anything_else,
                 (SELECT GROUP_CONCAT(s.date, '; ') FROM booking_days bd
                  JOIN sessions s ON s.id = bd.session_id

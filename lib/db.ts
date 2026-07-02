@@ -59,6 +59,10 @@ function migrate(db: Database.Database) {
 
       employee_name TEXT NOT NULL DEFAULT '',      -- the PossAbilities employee
       employee_relation TEXT NOT NULL DEFAULT '',  -- child | grandchild
+      employee_id TEXT NOT NULL DEFAULT '',        -- payroll / Element Suite ID
+
+      paid INTEGER NOT NULL DEFAULT 0,             -- payment received (marked by admin)
+      paid_at TEXT,
 
       pickup_names TEXT NOT NULL DEFAULT '',       -- who may collect the child
       consent_photo INTEGER NOT NULL DEFAULT 0,
@@ -92,9 +96,16 @@ function migrate(db: Database.Database) {
   `);
 
   // Lightweight migrations for databases created before these columns
-  for (const col of ['employee_name', 'employee_relation']) {
+  const columnMigrations = [
+    `ALTER TABLE bookings ADD COLUMN employee_name TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN employee_relation TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN employee_id TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN paid INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE bookings ADD COLUMN paid_at TEXT`,
+  ];
+  for (const sql of columnMigrations) {
     try {
-      db.exec(`ALTER TABLE bookings ADD COLUMN ${col} TEXT NOT NULL DEFAULT ''`);
+      db.exec(sql);
     } catch {
       /* column already exists */
     }

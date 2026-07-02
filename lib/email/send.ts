@@ -13,7 +13,7 @@ export async function sendEmail(opts: {
   to: string;
   subject: string;
   html: string;
-  kind: 'confirmation' | 'reminder' | 'cancellation';
+  kind: 'confirmation' | 'reminder' | 'cancellation' | 'payment' | 'receipt';
   bookingId?: number;
   sessionId?: number;
 }): Promise<{ id: number; status: string }> {

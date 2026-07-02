@@ -33,7 +33,10 @@ interface Booking {
   support_needs: string;
   gp_details: string;
   employee_name: string;
+  employee_id: string;
   employee_relation: string;
+  paid: number;
+  paid_at: string | null;
   pickup_names: string;
   consent_photo: number;
   anything_else: string;
@@ -115,6 +118,23 @@ export default function AdminDashboard() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
+    reload();
+  }
+
+  async function setPaid(id: number, paid: boolean) {
+    const sendReceipt = paid && confirm('Marked as paid ✓\n\nSend the family a payment-received email too?');
+    await fetch(`/api/bookings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paid, sendReceipt }),
+    });
+    setNotice(paid ? `Booking marked as paid${sendReceipt ? ' — receipt email sent.' : '.'}` : 'Booking marked as unpaid.');
+    reload();
+  }
+
+  async function sendPaymentEmail(id: number) {
+    const res = await fetch(`/api/bookings/${id}/payment-email`, { method: 'POST' });
+    setNotice(res.ok ? 'Payment email sent — view it in the Emails tab.' : 'Could not send the payment email.');
     reload();
   }
 
@@ -222,6 +242,7 @@ export default function AdminDashboard() {
                     <th>Days</th>
                     <th>Parent / guardian</th>
                     <th>Status</th>
+                    <th>Paid</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -234,11 +255,13 @@ export default function AdminDashboard() {
                       toggle={() => setOpen(open === b.id ? null : b.id)}
                       chip={chip}
                       setStatus={setStatus}
+                      setPaid={setPaid}
+                      sendPaymentEmail={sendPaymentEmail}
                     />
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center text-ink/40 py-10">
+                      <td colSpan={7} className="text-center text-ink/40 py-10">
                         No bookings found.
                       </td>
                     </tr>
@@ -307,12 +330,16 @@ function FragmentRow({
   toggle,
   chip,
   setStatus,
+  setPaid,
+  sendPaymentEmail,
 }: {
   b: Booking;
   open: boolean;
   toggle: () => void;
   chip: (s: string) => string;
   setStatus: (id: number, s: 'confirmed' | 'cancelled') => void;
+  setPaid: (id: number, paid: boolean) => void;
+  sendPaymentEmail: (id: number) => void;
 }) {
   return (
     <>
@@ -332,11 +359,19 @@ function FragmentRow({
         <td>
           <span className={`rounded-full px-2.5 py-1 text-xs font-extrabold ${chip(b.status)}`}>{b.status}</span>
         </td>
+        <td>
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-extrabold ${b.paid ? 'bg-teal/15 text-teal' : 'bg-pink/10 text-pink'}`}
+            title={b.paid_at || ''}
+          >
+            {b.paid ? 'PAID' : 'UNPAID'}
+          </span>
+        </td>
         <td className="text-right text-ink/40">{open ? '▴' : '▾'}</td>
       </tr>
       {open && (
         <tr>
-          <td colSpan={6} className="!bg-mist/50">
+          <td colSpan={7} className="!bg-mist/50">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 p-4 text-sm">
               <Detail label="Date of birth" value={b.child_dob} />
               <Detail label="Relationship" value={b.relationship} />
@@ -352,11 +387,36 @@ function FragmentRow({
                 label="PossAbilities employee"
                 value={b.employee_name ? `${b.employee_name} (${b.employee_relation || '—'})` : ''}
               />
+              <Detail label="Payroll / Element Suite ID" value={b.employee_id} />
+              <Detail label="Payment" value={b.paid ? `Paid ${b.paid_at ? '· ' + b.paid_at.slice(0, 10) : ''}` : 'Not yet paid'} />
               <Detail label="Photo consent" value={b.consent_photo ? 'Yes' : 'No'} />
               <Detail label="Anything else" value={b.anything_else} />
               <Detail label="Booked" value={b.created_at} />
             </div>
-            <div className="px-4 pb-4 flex gap-2">
+            <div className="px-4 pb-4 flex flex-wrap gap-2">
+              {!b.paid ? (
+                <>
+                  <button
+                    className="btn-small bg-teal/15 text-teal font-bold rounded-full"
+                    onClick={() => setPaid(b.id, true)}
+                  >
+                    ✓ Mark as paid
+                  </button>
+                  <button
+                    className="btn-small bg-pink/10 text-pink font-bold rounded-full"
+                    onClick={() => sendPaymentEmail(b.id)}
+                  >
+                    💷 Send payment email
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="btn-small bg-ink/5 text-ink/60 font-bold rounded-full"
+                  onClick={() => setPaid(b.id, false)}
+                >
+                  Mark as unpaid
+                </button>
+              )}
               {b.status === 'confirmed' ? (
                 <button className="btn-small bg-plum/10 text-plum font-bold rounded-full" onClick={() => setStatus(b.id, 'cancelled')}>
                   Cancel booking
