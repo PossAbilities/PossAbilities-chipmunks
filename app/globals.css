@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ──────────────────────────────────────────────────────────────
+   BRAND TOKENS — single source of truth.
+   Values are RGB triplets so Tailwind can apply alpha.
+   Swap these for the official PossAbilities guideline colours
+   and the whole site (and admin area) updates together.
+   ────────────────────────────────────────────────────────────── */
+:root {
+  --brand: 109 40 217;      /* PossAbilities purple (placeholder) */
+  --brand-deep: 76 29 149;  /* darker purple for hovers/headings   */
+  --acorn: 234 88 12;       /* chipmunk russet-orange              */
+  --leaf: 13 148 136;       /* farm green-teal                     */
+  --sunshine: 250 204 21;   /* sunny yellow                        */
+  --sky: 14 165 233;        /* sky blue                            */
+  --cream: 255 250 242;     /* warm page background                */
+  --ink: 46 42 71;          /* body text                           */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream text-ink font-body antialiased;
+}
+
+h1, h2, h3, h4 {
+  @apply font-display;
+}
+
+/* Scroll-reveal: elements start hidden, .revealed animates in.
+   The Reveal component adds the class via IntersectionObserver. */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-float,
+  .animate-float-slow,
+  .animate-wiggle,
+  .animate-tail-swish,
+  .animate-pop-in {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Buttons */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full font-display font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30;
+}
+.btn-primary {
+  @apply btn bg-brand text-white px-7 py-3.5 text-lg shadow-soft hover:bg-brand-deep hover:shadow-lift hover:-translate-y-0.5 active:translate-y-0;
+}
+.btn-secondary {
+  @apply btn bg-white text-brand border-2 border-brand/20 px-6 py-3 hover:border-brand/50 hover:-translate-y-0.5 active:translate-y-0;
+}
+.btn-small {
+  @apply btn text-sm px-4 py-2;
+}
+
+/* Form fields */
+.field-label {
+  @apply block font-bold text-ink mb-1.5;
+}
+.field-input {
+  @apply w-full rounded-2xl border-2 border-ink/10 bg-white px-4 py-3 text-ink placeholder:text-ink/35 transition-colors focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15;
+}
+.field-hint {
+  @apply text-sm text-ink/55 mt-1;
+}
+
+/* Admin tables */
+.admin-table th {
+  @apply text-left text-xs font-bold uppercase tracking-wide text-ink/50 px-3 py-2;
+}
+.admin-table td {
+  @apply px-3 py-2.5 text-sm border-t border-ink/5 align-middle;
+}

@@ -1,0 +1,497 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+interface Day {
+  id: number;
+  session_id: number;
+  date: string;
+  label: string;
+  checked_in_at: string | null;
+  checked_out_at: string | null;
+}
+interface Booking {
+  id: number;
+  ref: string;
+  status: string;
+  created_at: string;
+  child_first: string;
+  child_last: string;
+  child_dob: string;
+  photo: string;
+  parent_name: string;
+  parent_email: string;
+  parent_phone: string;
+  relationship: string;
+  kin_name: string;
+  kin_phone: string;
+  kin_relationship: string;
+  medical_conditions: string;
+  allergies: string;
+  dietary: string;
+  medication: string;
+  support_needs: string;
+  gp_details: string;
+  pickup_names: string;
+  consent_photo: number;
+  anything_else: string;
+  days: Day[];
+}
+interface SessionRow {
+  id: number;
+  date: string;
+  label: string;
+  capacity: number;
+  active: number;
+  booked: number;
+}
+interface EmailRow {
+  id: number;
+  kind: string;
+  to_email: string;
+  subject: string;
+  status: string;
+  error: string;
+  created_at: string;
+  ref: string | null;
+}
+
+const TABS = ['Bookings', 'Days', 'Emails'] as const;
+
+function fmt(date: string) {
+  return new Date(date + 'T12:00:00Z').toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+export default function AdminDashboard() {
+  const [tab, setTab] = useState<(typeof TABS)[number]>('Bookings');
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [emails, setEmails] = useState<EmailRow[]>([]);
+  const [search, setSearch] = useState('');
+  const [dayFilter, setDayFilter] = useState('');
+  const [open, setOpen] = useState<number | null>(null);
+  const [notice, setNotice] = useState('');
+
+  const reload = useCallback(async () => {
+    const [b, s, e] = await Promise.all([
+      fetch('/api/bookings').then((r) => r.json()),
+      fetch('/api/sessions?all=1').then((r) => r.json()),
+      fetch('/api/emails').then((r) => r.json()),
+    ]);
+    setBookings(b.bookings || []);
+    setSessions(s.sessions || []);
+    setEmails(e.emails || []);
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return bookings.filter((b) => {
+      if (dayFilter && !b.days.some((d) => d.date === dayFilter)) return false;
+      if (!q) return true;
+      return [b.ref, b.child_first, b.child_last, b.parent_name, b.parent_email, b.parent_phone]
+        .join(' ')
+        .toLowerCase()
+        .includes(q);
+    });
+  }, [bookings, search, dayFilter]);
+
+  async function setStatus(id: number, status: 'confirmed' | 'cancelled') {
+    if (status === 'cancelled' && !confirm('Cancel this booking? The family will get a cancellation email.'))
+      return;
+    await fetch(`/api/bookings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    reload();
+  }
+
+  async function sendReminders() {
+    const res = await fetch('/api/cron/reminders', { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    setNotice(res.ok ? `Reminders queued for ${body.date}: ${body.sent} email(s).` : 'Reminder run failed.');
+    reload();
+  }
+
+  async function logout() {
+    await fetch('/api/login', { method: 'DELETE' });
+    location.reload();
+  }
+
+  const chip = (status: string) =>
+    ({
+      confirmed: 'bg-leaf/15 text-leaf',
+      cancelled: 'bg-acorn/15 text-acorn',
+      sent: 'bg-leaf/15 text-leaf',
+      outbox: 'bg-sunshine/30 text-ink/70',
+      failed: 'bg-acorn/15 text-acorn',
+    })[status] || 'bg-ink/10 text-ink/60';
+
+  return (
+    <main className="min-h-screen bg-cream">
+      <header className="bg-brand-deep text-white">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">🐿️</span>
+            <span className="font-display font-extrabold text-lg">Chipmunks Admin</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a href="/champion" className="text-sm font-bold text-white/70 hover:text-white">
+              Check-in register →
+            </a>
+            <button onClick={logout} className="text-sm font-bold text-white/70 hover:text-white">
+              Sign out
+            </button>
+          </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 flex gap-1">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`rounded-t-xl px-5 py-2.5 font-display font-bold text-sm transition-colors ${
+                tab === t ? 'bg-cream text-brand-deep' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+        {notice && (
+          <div className="mb-5 rounded-2xl bg-leaf/10 border border-leaf/25 px-5 py-3 font-bold text-leaf flex justify-between items-center">
+            {notice}
+            <button className="text-leaf/60" onClick={() => setNotice('')}>✕</button>
+          </div>
+        )}
+
+        {/* ── Bookings ── */}
+        {tab === 'Bookings' && (
+          <>
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+              <input
+                className="field-input !w-64"
+                placeholder="Search name, ref, email…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <select className="field-input !w-auto" value={dayFilter} onChange={(e) => setDayFilter(e.target.value)}>
+                <option value="">All days</option>
+                {sessions.map((s) => (
+                  <option key={s.id} value={s.date}>
+                    {fmt(s.date)}
+                  </option>
+                ))}
+              </select>
+              <div className="ml-auto flex flex-wrap gap-2">
+                <button onClick={sendReminders} className="btn-secondary btn-small">
+                  ⏰ Send tomorrow’s reminders
+                </button>
+                <a href="/api/export" className="btn-secondary btn-small">
+                  ⬇ Export bookings CSV
+                </a>
+                <a
+                  href={`/api/export?mode=days${dayFilter ? `&date=${dayFilter}` : ''}`}
+                  className="btn-secondary btn-small"
+                >
+                  ⬇ Export register CSV
+                </a>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-white border border-ink/5 shadow-soft overflow-x-auto">
+              <table className="admin-table w-full min-w-[760px]">
+                <thead>
+                  <tr>
+                    <th>Ref</th>
+                    <th>Child</th>
+                    <th>Days</th>
+                    <th>Parent / guardian</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((b) => (
+                    <FragmentRow
+                      key={b.id}
+                      b={b}
+                      open={open === b.id}
+                      toggle={() => setOpen(open === b.id ? null : b.id)}
+                      chip={chip}
+                      setStatus={setStatus}
+                    />
+                  ))}
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="text-center text-ink/40 py-10">
+                        No bookings found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* ── Days ── */}
+        {tab === 'Days' && <DaysTab sessions={sessions} reload={reload} />}
+
+        {/* ── Emails ── */}
+        {tab === 'Emails' && (
+          <div className="rounded-2xl bg-white border border-ink/5 shadow-soft overflow-x-auto">
+            <table className="admin-table w-full min-w-[700px]">
+              <thead>
+                <tr>
+                  <th>Sent</th>
+                  <th>Type</th>
+                  <th>To</th>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {emails.map((e) => (
+                  <tr key={e.id}>
+                    <td className="whitespace-nowrap text-ink/60">{e.created_at}</td>
+                    <td className="capitalize font-bold">{e.kind}</td>
+                    <td>{e.to_email}</td>
+                    <td className="max-w-[280px] truncate">{e.subject}</td>
+                    <td>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-extrabold ${chip(e.status)}`} title={e.error}>
+                        {e.status}
+                      </span>
+                    </td>
+                    <td>
+                      <a className="text-brand font-bold text-sm hover:underline" href={`/api/emails/${e.id}`} target="_blank">
+                        View
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+                {emails.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="text-center text-ink/40 py-10">
+                      No emails yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function FragmentRow({
+  b,
+  open,
+  toggle,
+  chip,
+  setStatus,
+}: {
+  b: Booking;
+  open: boolean;
+  toggle: () => void;
+  chip: (s: string) => string;
+  setStatus: (id: number, s: 'confirmed' | 'cancelled') => void;
+}) {
+  return (
+    <>
+      <tr className={`cursor-pointer hover:bg-cream/60 ${b.status === 'cancelled' ? 'opacity-50' : ''}`} onClick={toggle}>
+        <td className="font-mono font-bold text-brand-deep whitespace-nowrap">{b.ref}</td>
+        <td className="font-bold whitespace-nowrap">
+          {b.child_first} {b.child_last}
+          {(b.medical_conditions || b.allergies || b.medication) && (
+            <span title="Has medical notes" className="ml-1.5">⚕️</span>
+          )}
+        </td>
+        <td className="text-ink/70">{b.days.map((d) => fmt(d.date)).join(', ')}</td>
+        <td>
+          <div className="font-bold">{b.parent_name}</div>
+          <div className="text-xs text-ink/55">{b.parent_email} · {b.parent_phone}</div>
+        </td>
+        <td>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-extrabold ${chip(b.status)}`}>{b.status}</span>
+        </td>
+        <td className="text-right text-ink/40">{open ? '▴' : '▾'}</td>
+      </tr>
+      {open && (
+        <tr>
+          <td colSpan={6} className="!bg-cream/50">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 p-4 text-sm">
+              <Detail label="Date of birth" value={b.child_dob} />
+              <Detail label="Relationship" value={b.relationship} />
+              <Detail label="Next of kin" value={[b.kin_name, b.kin_phone, b.kin_relationship].filter(Boolean).join(' · ')} />
+              <Detail label="Allowed to collect" value={b.pickup_names} />
+              <Detail label="Medical conditions" value={b.medical_conditions} />
+              <Detail label="Allergies" value={b.allergies} />
+              <Detail label="Dietary" value={b.dietary} />
+              <Detail label="Medication" value={b.medication} />
+              <Detail label="Support needs" value={b.support_needs} />
+              <Detail label="GP" value={b.gp_details} />
+              <Detail label="Photo consent" value={b.consent_photo ? 'Yes' : 'No'} />
+              <Detail label="Anything else" value={b.anything_else} />
+              <Detail label="Booked" value={b.created_at} />
+            </div>
+            <div className="px-4 pb-4 flex gap-2">
+              {b.status === 'confirmed' ? (
+                <button className="btn-small bg-acorn/10 text-acorn font-bold rounded-full" onClick={() => setStatus(b.id, 'cancelled')}>
+                  Cancel booking
+                </button>
+              ) : (
+                <button className="btn-small bg-leaf/10 text-leaf font-bold rounded-full" onClick={() => setStatus(b.id, 'confirmed')}>
+                  Restore booking
+                </button>
+              )}
+              <a className="btn-small bg-brand/10 text-brand font-bold rounded-full" href={`mailto:${b.parent_email}`}>
+                Email parent
+              </a>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40">{label}</div>
+      <div className="text-ink/80">{value || <span className="text-ink/30">—</span>}</div>
+    </div>
+  );
+}
+
+function DaysTab({ sessions, reload }: { sessions: SessionRow[]; reload: () => void }) {
+  const [date, setDate] = useState('');
+  const [label, setLabel] = useState('');
+  const [capacity, setCapacity] = useState(20);
+  const [err, setErr] = useState('');
+
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    setErr('');
+    const res = await fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, label, capacity }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setErr(body.error || 'Could not add day.');
+      return;
+    }
+    setDate('');
+    setLabel('');
+    reload();
+  }
+
+  async function patch(id: number, body: Record<string, unknown>) {
+    await fetch(`/api/sessions/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    reload();
+  }
+
+  async function remove(id: number) {
+    if (!confirm('Delete this day?')) return;
+    const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setErr(body.error || 'Could not delete.');
+    }
+    reload();
+  }
+
+  return (
+    <>
+      <form onSubmit={add} className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl bg-white border border-ink/5 shadow-soft p-5">
+        <div>
+          <label className="field-label" htmlFor="new-date">Date</label>
+          <input id="new-date" type="date" required className="field-input !w-auto" value={date} onChange={(e) => setDate(e.target.value)} />
+        </div>
+        <div className="flex-1 min-w-[160px]">
+          <label className="field-label" htmlFor="new-label">Label (optional)</label>
+          <input id="new-label" className="field-input" placeholder="e.g. Farmyard Fun" value={label} onChange={(e) => setLabel(e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="new-cap">Capacity</label>
+          <input id="new-cap" type="number" min={1} className="field-input !w-24" value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} />
+        </div>
+        <button className="btn-primary !py-3">+ Add day</button>
+        {err && <div className="w-full text-sm font-bold text-acorn">{err}</div>}
+      </form>
+
+      <div className="rounded-2xl bg-white border border-ink/5 shadow-soft overflow-x-auto">
+        <table className="admin-table w-full min-w-[620px]">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Label</th>
+              <th>Booked / capacity</th>
+              <th>Visible</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {sessions.map((s) => (
+              <tr key={s.id} className={s.active ? '' : 'opacity-50'}>
+                <td className="font-bold whitespace-nowrap">{fmt(s.date)}</td>
+                <td>
+                  <input
+                    className="field-input !py-1.5 !px-3 !rounded-lg"
+                    defaultValue={s.label}
+                    onBlur={(e) => e.target.value !== s.label && patch(s.id, { label: e.target.value })}
+                  />
+                </td>
+                <td className="whitespace-nowrap">
+                  <span className={`font-extrabold ${s.booked >= s.capacity ? 'text-acorn' : 'text-leaf'}`}>{s.booked}</span>
+                  {' / '}
+                  <input
+                    type="number"
+                    min={1}
+                    className="field-input !py-1.5 !px-2 !rounded-lg !w-20 inline-block"
+                    defaultValue={s.capacity}
+                    onBlur={(e) => Number(e.target.value) !== s.capacity && patch(s.id, { capacity: Number(e.target.value) })}
+                  />
+                </td>
+                <td>
+                  <button
+                    onClick={() => patch(s.id, { active: !s.active })}
+                    className={`rounded-full px-3 py-1 text-xs font-extrabold ${s.active ? 'bg-leaf/15 text-leaf' : 'bg-ink/10 text-ink/50'}`}
+                  >
+                    {s.active ? 'Bookable' : 'Hidden'}
+                  </button>
+                </td>
+                <td className="text-right">
+                  <button onClick={() => remove(s.id)} className="text-acorn/70 hover:text-acorn font-bold text-sm">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}

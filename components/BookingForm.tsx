@@ -1,0 +1,545 @@
+'use client';
+
+import { useMemo, useRef, useState } from 'react';
+import { site } from '@/content/site';
+
+interface SessionOption {
+  id: number;
+  date: string;
+  label: string;
+  spacesLeft: number;
+}
+
+const STEPS = ['Days', 'Your child', 'Grown-ups', 'Health', 'Confirm'] as const;
+
+function formatDate(iso: string) {
+  return new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'Europe/London',
+  });
+}
+
+/** Downscale a photo client-side so phone-camera shots upload quickly. */
+async function shrinkPhoto(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file;
+  const MAX = 900;
+  const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return file;
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+  return blob || file;
+}
+
+export default function BookingForm({ sessions }: { sessions: SessionOption[] }) {
+  const [step, setStep] = useState(0);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [doneRef, setDoneRef] = useState('');
+
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const photoBlob = useRef<Blob | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  const [f, setF] = useState({
+    child_first: '',
+    child_last: '',
+    child_dob: '',
+    support_needs: '',
+    parent_name: '',
+    relationship: '',
+    parent_email: '',
+    parent_phone: '',
+    kin_name: '',
+    kin_phone: '',
+    kin_relationship: '',
+    pickup_names: '',
+    medical_conditions: '',
+    allergies: '',
+    dietary: '',
+    medication: '',
+    gp_details: '',
+    anything_else: '',
+    consent_activities: false,
+    consent_medical: false,
+    consent_photo: false,
+  });
+
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setF((prev) => ({
+      ...prev,
+      [k]: e.target instanceof HTMLInputElement && e.target.type === 'checkbox' ? e.target.checked : e.target.value,
+    }));
+
+  const chosenDates = useMemo(
+    () => sessions.filter((s) => selectedDays.includes(s.id)).map((s) => s.date).sort(),
+    [selectedDays, sessions]
+  );
+
+  async function onPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const blob = await shrinkPhoto(file);
+    photoBlob.current = blob;
+    setPhotoPreview(URL.createObjectURL(blob));
+  }
+
+  function validateStep(current: number): string {
+    switch (current) {
+      case 0:
+        return selectedDays.length ? '' : 'Pick at least one day to continue.';
+      case 1:
+        if (!f.child_first.trim() || !f.child_last.trim()) return 'Please tell us your child’s name.';
+        return '';
+      case 2:
+        if (!f.parent_name.trim()) return 'Please tell us your name.';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.parent_email)) return 'Please enter a valid email address.';
+        if (!f.parent_phone.trim()) return 'Please enter a phone number we can reach you on.';
+        return '';
+      case 3:
+        return '';
+      case 4:
+        if (!f.consent_activities || !f.consent_medical)
+          return 'The two required consents are needed before we can take the booking.';
+        return '';
+    }
+    return '';
+  }
+
+  function next() {
+    const msg = validateStep(step);
+    setError(msg);
+    if (!msg) {
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+  function back() {
+    setError('');
+    setStep((s) => Math.max(0, s - 1));
+  }
+
+  async function submit() {
+    const msg = validateStep(4);
+    setError(msg);
+    if (msg) return;
+    setSubmitting(true);
+    try {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(f)) {
+        fd.set(k, typeof v === 'boolean' ? (v ? 'yes' : 'no') : v);
+      }
+      fd.set('session_ids', JSON.stringify(selectedDays));
+      if (photoBlob.current) fd.set('photo', photoBlob.current, 'child.jpg');
+      const res = await fetch('/api/bookings', { method: 'POST', body: fd });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Something went wrong — please try again.');
+      setDoneRef(body.ref);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong — please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  /* ── Success screen ─────────────────────────────────── */
+  if (doneRef) {
+    return (
+      <div className="animate-pop-in rounded-blob bg-white border border-leaf/20 shadow-lift p-8 sm:p-12 text-center">
+        <div className="text-7xl animate-wiggle inline-block">🎉</div>
+        <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-leaf">You’re booked in!</h2>
+        <p className="mt-4 text-lg text-ink/70 max-w-md mx-auto">
+          {f.child_first} is coming to Chipmunks! Your booking reference is
+        </p>
+        <div className="mt-4 inline-block rounded-2xl bg-sunshine/30 border-2 border-sunshine px-8 py-3 font-display text-2xl font-extrabold tracking-widest text-ink">
+          {doneRef}
+        </div>
+        <p className="mt-6 text-ink/60 max-w-md mx-auto">
+          A confirmation email with all the details is on its way to <strong>{f.parent_email}</strong>. We’ll
+          also send a reminder the day before each visit.
+        </p>
+        <a href="/" className="btn-primary mt-8">
+          Back to the Chipmunks page
+        </a>
+      </div>
+    );
+  }
+
+  const inputCls = 'field-input';
+
+  return (
+    <div className="rounded-blob bg-white border border-ink/5 shadow-lift overflow-hidden">
+      {/* Progress */}
+      <div className="bg-brand-deep px-6 sm:px-10 pt-6 pb-5">
+        <div className="flex justify-between">
+          {STEPS.map((label, i) => (
+            <div key={label} className="flex flex-col items-center gap-1.5 flex-1">
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-full font-display font-extrabold text-sm transition-all duration-300 ${
+                  i < step
+                    ? 'bg-leaf text-white'
+                    : i === step
+                      ? 'bg-sunshine text-ink scale-110 shadow-lift'
+                      : 'bg-white/15 text-white/50'
+                }`}
+              >
+                {i < step ? '✓' : i + 1}
+              </div>
+              <span className={`text-[11px] font-bold hidden sm:block ${i === step ? 'text-white' : 'text-white/40'}`}>
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 h-1.5 rounded-full bg-white/15 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-sunshine transition-all duration-500"
+            style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="p-6 sm:p-10">
+        {error && (
+          <div className="mb-6 animate-pop-in rounded-2xl bg-acorn/10 border border-acorn/30 px-5 py-3.5 font-bold text-acorn">
+            {error}
+          </div>
+        )}
+
+        {/* Step 0 — days */}
+        {step === 0 && (
+          <div className="animate-pop-in">
+            <h2 className="text-2xl font-extrabold text-ink">Which days would you like?</h2>
+            <p className="mt-1 text-ink/55">
+              Pick as many as you like — £{site.session.pricePerDay} per day.
+            </p>
+            {sessions.length === 0 && (
+              <p className="mt-6 text-ink/60">
+                No dates are open for booking right now — email{' '}
+                <a href={`mailto:${site.contact.email}`} className="text-brand font-bold underline">
+                  {site.contact.email}
+                </a>{' '}
+                and we’ll let you know as soon as new dates land.
+              </p>
+            )}
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {sessions.map((s) => {
+                const active = selectedDays.includes(s.id);
+                const full = s.spacesLeft === 0;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    disabled={full}
+                    onClick={() =>
+                      setSelectedDays((prev) =>
+                        active ? prev.filter((id) => id !== s.id) : [...prev, s.id]
+                      )
+                    }
+                    className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
+                      full
+                        ? 'opacity-50 cursor-not-allowed border-ink/10 bg-cream'
+                        : active
+                          ? 'border-brand bg-brand/5 shadow-soft -translate-y-0.5'
+                          : 'border-ink/10 bg-white hover:border-brand/40 hover:-translate-y-0.5'
+                    }`}
+                  >
+                    <span>
+                      <span className="block font-display font-extrabold text-ink">{formatDate(s.date)}</span>
+                      <span className="text-sm text-ink/55 font-bold">
+                        {full ? 'Fully booked' : s.label || 'Holiday club day'}
+                      </span>
+                    </span>
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-sm font-extrabold transition-all ${
+                        active ? 'bg-brand border-brand text-white' : 'border-ink/20 text-transparent'
+                      }`}
+                    >
+                      ✓
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Step 1 — child */}
+        {step === 1 && (
+          <div className="animate-pop-in space-y-5">
+            <div>
+              <h2 className="text-2xl font-extrabold text-ink">Tell us about your child</h2>
+              <p className="mt-1 text-ink/55">So our Activity Champions can give them the warmest welcome.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <div>
+                <label className="field-label" htmlFor="child_first">First name *</label>
+                <input id="child_first" className={inputCls} value={f.child_first} onChange={set('child_first')} />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="child_last">Last name *</label>
+                <input id="child_last" className={inputCls} value={f.child_last} onChange={set('child_last')} />
+              </div>
+            </div>
+            <div className="sm:w-1/2">
+              <label className="field-label" htmlFor="child_dob">Date of birth</label>
+              <input id="child_dob" type="date" className={inputCls} value={f.child_dob} onChange={set('child_dob')} />
+            </div>
+
+            {/* Photo */}
+            <div className="rounded-2xl bg-sky/5 border border-sky/20 p-5">
+              <div className="flex items-start gap-4">
+                {photoPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={photoPreview}
+                    alt="Preview of your child's photo"
+                    className="h-24 w-24 rounded-2xl object-cover border-2 border-sky/40 shadow-soft"
+                  />
+                ) : (
+                  <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-sky/10 text-4xl">📸</div>
+                )}
+                <div className="flex-1">
+                  <div className="font-bold text-ink">Add a photo of your child</div>
+                  <p className="text-sm text-ink/55 mt-0.5">
+                    This appears on the Activity Champion’s check-in list so the team recognises {f.child_first || 'your child'} at drop-off. On a phone you can take one right now with the camera.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" className="btn-secondary btn-small" onClick={() => fileInput.current?.click()}>
+                      {photoPreview ? 'Change photo' : '📷 Take or choose a photo'}
+                    </button>
+                    {photoPreview && (
+                      <button
+                        type="button"
+                        className="btn-small text-ink/50 hover:text-acorn font-bold"
+                        onClick={() => {
+                          photoBlob.current = null;
+                          setPhotoPreview('');
+                          if (fileInput.current) fileInput.current.value = '';
+                        }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    className="hidden"
+                    onChange={onPhotoChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="field-label" htmlFor="support_needs">
+                Anything that helps us support them? <span className="font-normal text-ink/45">(optional)</span>
+              </label>
+              <textarea
+                id="support_needs"
+                rows={3}
+                className={inputCls}
+                placeholder="e.g. additional needs, things they love, things they find tricky…"
+                value={f.support_needs}
+                onChange={set('support_needs')}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Step 2 — grown-ups */}
+        {step === 2 && (
+          <div className="animate-pop-in space-y-5">
+            <div>
+              <h2 className="text-2xl font-extrabold text-ink">Grown-ups & emergency contacts</h2>
+              <p className="mt-1 text-ink/55">Who we should talk to about the booking and in an emergency.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <div>
+                <label className="field-label" htmlFor="parent_name">Your name *</label>
+                <input id="parent_name" className={inputCls} value={f.parent_name} onChange={set('parent_name')} />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="relationship">Relationship to child</label>
+                <input id="relationship" className={inputCls} placeholder="e.g. Mum, Dad, Carer" value={f.relationship} onChange={set('relationship')} />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="parent_email">Email address *</label>
+                <input id="parent_email" type="email" className={inputCls} value={f.parent_email} onChange={set('parent_email')} />
+                <p className="field-hint">Booking confirmation and reminders go here.</p>
+              </div>
+              <div>
+                <label className="field-label" htmlFor="parent_phone">Phone number *</label>
+                <input id="parent_phone" type="tel" className={inputCls} value={f.parent_phone} onChange={set('parent_phone')} />
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-cream border border-ink/8 p-5 space-y-4">
+              <div className="font-bold text-ink">Second emergency contact (next of kin)</div>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="field-label" htmlFor="kin_name">Name</label>
+                  <input id="kin_name" className={inputCls} value={f.kin_name} onChange={set('kin_name')} />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="kin_phone">Phone</label>
+                  <input id="kin_phone" type="tel" className={inputCls} value={f.kin_phone} onChange={set('kin_phone')} />
+                </div>
+                <div>
+                  <label className="field-label" htmlFor="kin_relationship">Relationship</label>
+                  <input id="kin_relationship" className={inputCls} placeholder="e.g. Grandma" value={f.kin_relationship} onChange={set('kin_relationship')} />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="field-label" htmlFor="pickup_names">Who is allowed to collect your child?</label>
+              <input
+                id="pickup_names"
+                className={inputCls}
+                placeholder="Names of adults who may pick them up"
+                value={f.pickup_names}
+                onChange={set('pickup_names')}
+              />
+              <p className="field-hint">We’ll only release children to the people named here.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3 — health */}
+        {step === 3 && (
+          <div className="animate-pop-in space-y-5">
+            <div>
+              <h2 className="text-2xl font-extrabold text-ink">Health & medical information</h2>
+              <p className="mt-1 text-ink/55">
+                Leave anything blank that doesn’t apply. This is shared only with the team looking after your child.
+              </p>
+            </div>
+            <div>
+              <label className="field-label" htmlFor="medical_conditions">Medical conditions</label>
+              <textarea id="medical_conditions" rows={2} className={inputCls} placeholder="e.g. asthma, epilepsy, diabetes…" value={f.medical_conditions} onChange={set('medical_conditions')} />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <div>
+                <label className="field-label" htmlFor="allergies">Allergies</label>
+                <textarea id="allergies" rows={2} className={inputCls} placeholder="e.g. nuts, penicillin, animal hair…" value={f.allergies} onChange={set('allergies')} />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="dietary">Dietary requirements</label>
+                <textarea id="dietary" rows={2} className={inputCls} placeholder="e.g. vegetarian, halal, gluten-free…" value={f.dietary} onChange={set('dietary')} />
+              </div>
+            </div>
+            <div>
+              <label className="field-label" htmlFor="medication">Medication they take (and when)</label>
+              <textarea id="medication" rows={2} className={inputCls} placeholder="e.g. inhaler — two puffs before exercise" value={f.medication} onChange={set('medication')} />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="gp_details">GP name & surgery</label>
+              <input id="gp_details" className={inputCls} value={f.gp_details} onChange={set('gp_details')} />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="anything_else">Anything else we should know?</label>
+              <textarea id="anything_else" rows={2} className={inputCls} value={f.anything_else} onChange={set('anything_else')} />
+            </div>
+          </div>
+        )}
+
+        {/* Step 4 — confirm */}
+        {step === 4 && (
+          <div className="animate-pop-in space-y-6">
+            <div>
+              <h2 className="text-2xl font-extrabold text-ink">Nearly there — check & consent</h2>
+            </div>
+
+            <div className="rounded-2xl bg-cream border border-ink/8 p-5 text-sm leading-7">
+              <div className="font-display font-extrabold text-lg text-brand-deep mb-1">
+                {f.child_first} {f.child_last}
+              </div>
+              <div>
+                <strong>{chosenDates.length}</strong> day{chosenDates.length === 1 ? '' : 's'}:{' '}
+                {chosenDates.map(formatDate).join(' · ')}
+              </div>
+              <div>
+                Total: <strong>£{chosenDates.length * site.session.pricePerDay}</strong> (payment details in your
+                confirmation email)
+              </div>
+              <div className="text-ink/55">
+                Contact: {f.parent_name} · {f.parent_email} · {f.parent_phone}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {(
+                [
+                  {
+                    key: 'consent_activities' as const,
+                    required: true,
+                    label: `I give permission for my child to take part in all Chipmunks activities, including farm animal contact and the immersive room.`,
+                  },
+                  {
+                    key: 'consent_medical' as const,
+                    required: true,
+                    label: `In an emergency, I authorise the ${site.orgName} team to seek medical treatment for my child if I can’t be reached.`,
+                  },
+                  {
+                    key: 'consent_photo' as const,
+                    required: false,
+                    label: `I’m happy for photos of my child to be used by ${site.orgName} to celebrate what we get up to (optional).`,
+                  },
+                ] as const
+              ).map((c) => (
+                <label
+                  key={c.key}
+                  className={`flex items-start gap-3.5 rounded-2xl border-2 p-4 cursor-pointer transition-colors ${
+                    f[c.key] ? 'border-leaf bg-leaf/5' : 'border-ink/10 bg-white hover:border-ink/25'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={f[c.key]}
+                    onChange={set(c.key)}
+                    className="mt-1 h-5 w-5 accent-[rgb(var(--leaf))]"
+                  />
+                  <span className="text-sm leading-relaxed text-ink/75">
+                    {c.label} {c.required && <strong className="text-acorn">*</strong>}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Nav buttons */}
+        <div className="mt-8 flex items-center justify-between">
+          {step > 0 ? (
+            <button type="button" onClick={back} className="btn-secondary">
+              ← Back
+            </button>
+          ) : (
+            <span />
+          )}
+          {step < STEPS.length - 1 ? (
+            <button type="button" onClick={next} className="btn-primary">
+              Continue →
+            </button>
+          ) : (
+            <button type="button" onClick={submit} disabled={submitting} className="btn-primary disabled:opacity-60">
+              {submitting ? 'Booking…' : `Confirm booking 🐿️`}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
