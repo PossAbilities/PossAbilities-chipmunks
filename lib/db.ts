@@ -39,16 +39,19 @@ function migrate(db: Database.Database) {
       child_first TEXT NOT NULL,
       child_last TEXT NOT NULL,
       child_dob TEXT NOT NULL DEFAULT '',
+      child_address TEXT NOT NULL DEFAULT '',
       photo TEXT NOT NULL DEFAULT '',              -- filename in uploads dir
 
       parent_name TEXT NOT NULL,
       parent_email TEXT NOT NULL,
       parent_phone TEXT NOT NULL,
+      parent_phone2 TEXT NOT NULL DEFAULT '',      -- other contact number
       relationship TEXT NOT NULL DEFAULT '',
 
       kin_name TEXT NOT NULL DEFAULT '',           -- second emergency contact
       kin_phone TEXT NOT NULL DEFAULT '',
       kin_relationship TEXT NOT NULL DEFAULT '',
+      kin_address TEXT NOT NULL DEFAULT '',
 
       medical_conditions TEXT NOT NULL DEFAULT '',
       allergies TEXT NOT NULL DEFAULT '',
@@ -100,8 +103,12 @@ function migrate(db: Database.Database) {
     `ALTER TABLE bookings ADD COLUMN employee_name TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN employee_relation TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN employee_id TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN employee_email TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN paid INTEGER NOT NULL DEFAULT 0`,
     `ALTER TABLE bookings ADD COLUMN paid_at TEXT`,
+    `ALTER TABLE bookings ADD COLUMN child_address TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN parent_phone2 TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN kin_address TEXT NOT NULL DEFAULT ''`,
   ];
   for (const sql of columnMigrations) {
     try {

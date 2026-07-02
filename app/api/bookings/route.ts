@@ -115,27 +115,30 @@ export async function POST(req: NextRequest) {
     const res = db
       .prepare(
         `INSERT INTO bookings (
-          ref, child_first, child_last, child_dob, photo,
-          parent_name, parent_email, parent_phone, relationship,
-          kin_name, kin_phone, kin_relationship,
+          ref, child_first, child_last, child_dob, child_address, photo,
+          parent_name, parent_email, parent_phone, parent_phone2, relationship,
+          kin_name, kin_phone, kin_relationship, kin_address,
           medical_conditions, allergies, dietary, medication, support_needs, gp_details,
-          employee_name, employee_id, employee_relation,
+          employee_name, employee_id, employee_relation, employee_email,
           pickup_names, consent_photo, consent_medical, consent_activities, anything_else
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       )
       .run(
         ref,
         str('child_first'),
         str('child_last'),
         str('child_dob'),
+        str('child_address'),
         photoName,
         str('parent_name'),
         email,
         str('parent_phone'),
+        str('parent_phone2'),
         str('relationship'),
         str('kin_name'),
         str('kin_phone'),
         str('kin_relationship'),
+        str('kin_address'),
         str('medical_conditions'),
         str('allergies'),
         str('dietary'),
@@ -145,6 +148,7 @@ export async function POST(req: NextRequest) {
         str('employee_name'),
         str('employee_id'),
         str('employee_relation'),
+        str('employee_email'),
         str('pickup_names'),
         str('consent_photo') === 'yes' ? 1 : 0,
         1,

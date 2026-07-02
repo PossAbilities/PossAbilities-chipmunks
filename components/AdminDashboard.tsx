@@ -18,14 +18,18 @@ interface Booking {
   child_first: string;
   child_last: string;
   child_dob: string;
+  child_address: string;
   photo: string;
   parent_name: string;
   parent_email: string;
   parent_phone: string;
+  parent_phone2: string;
   relationship: string;
   kin_name: string;
   kin_phone: string;
   kin_relationship: string;
+  kin_address: string;
+  employee_email: string;
   medical_conditions: string;
   allergies: string;
   dietary: string;
@@ -374,8 +378,11 @@ function FragmentRow({
           <td colSpan={7} className="!bg-mist/50">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 p-4 text-sm">
               <Detail label="Date of birth" value={b.child_dob} />
+              <Detail label="Child's address" value={b.child_address} />
               <Detail label="Relationship" value={b.relationship} />
+              <Detail label="Other contact number" value={b.parent_phone2} />
               <Detail label="Next of kin" value={[b.kin_name, b.kin_phone, b.kin_relationship].filter(Boolean).join(' · ')} />
+              <Detail label="Next of kin address" value={b.kin_address} />
               <Detail label="Allowed to collect" value={b.pickup_names} />
               <Detail label="Medical conditions" value={b.medical_conditions} />
               <Detail label="Allergies" value={b.allergies} />
@@ -388,6 +395,7 @@ function FragmentRow({
                 value={b.employee_name ? `${b.employee_name} (${b.employee_relation || '—'})` : ''}
               />
               <Detail label="Payroll / Element Suite ID" value={b.employee_id} />
+              <Detail label="Employee email" value={b.employee_email} />
               <Detail label="Payment" value={b.paid ? `Paid ${b.paid_at ? '· ' + b.paid_at.slice(0, 10) : ''}` : 'Not yet paid'} />
               <Detail label="Photo consent" value={b.consent_photo ? 'Yes' : 'No'} />
               <Detail label="Anything else" value={b.anything_else} />

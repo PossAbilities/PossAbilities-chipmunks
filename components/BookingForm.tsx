@@ -53,17 +53,21 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     child_first: '',
     child_last: '',
     child_dob: '',
+    child_address: '',
     support_needs: '',
     parent_name: '',
     relationship: '',
     employee_name: '',
     employee_id: '',
     employee_relation: '',
+    employee_email: '',
     parent_email: '',
     parent_phone: '',
+    parent_phone2: '',
     kin_name: '',
     kin_phone: '',
     kin_relationship: '',
+    kin_address: '',
     pickup_names: '',
     medical_conditions: '',
     allergies: '',
@@ -326,6 +330,17 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               <input id="child_dob" type="date" className={inputCls} value={f.child_dob} onChange={set('child_dob')} />
               <p className="field-hint">Chipmunks must be 8 years old or over.</p>
             </div>
+            <div>
+              <label className="field-label" htmlFor="child_address">Home address</label>
+              <textarea
+                id="child_address"
+                rows={2}
+                className={inputCls}
+                placeholder="House number, street, town, postcode"
+                value={f.child_address}
+                onChange={set('child_address')}
+              />
+            </div>
 
             {/* Photo */}
             <div className="rounded-2xl bg-teal/5 border border-teal/20 p-5">
@@ -416,6 +431,12 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                 <label className="field-label" htmlFor="parent_phone">Phone number *</label>
                 <input id="parent_phone" type="tel" className={inputCls} value={f.parent_phone} onChange={set('parent_phone')} />
               </div>
+              <div>
+                <label className="field-label" htmlFor="parent_phone2">
+                  Other contact number <span className="font-normal text-ink/45">(optional)</span>
+                </label>
+                <input id="parent_phone2" type="tel" className={inputCls} value={f.parent_phone2} onChange={set('parent_phone2')} />
+              </div>
             </div>
 
             <div className="rounded-2xl bg-pink/5 border border-pink/20 p-5 space-y-4">
@@ -447,6 +468,19 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                   </select>
                 </div>
               </div>
+              <div className="sm:w-2/3">
+                <label className="field-label" htmlFor="employee_email">
+                  Employee’s email <span className="font-normal text-ink/45">(optional)</span>
+                </label>
+                <input
+                  id="employee_email"
+                  type="email"
+                  className={inputCls}
+                  placeholder="Their PossAbilities work email, if they have one"
+                  value={f.employee_email}
+                  onChange={set('employee_email')}
+                />
+              </div>
             </div>
 
             <div className="rounded-2xl bg-mist border border-ink/8 p-5 space-y-4">
@@ -464,6 +498,18 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                   <label className="field-label" htmlFor="kin_relationship">Relationship</label>
                   <input id="kin_relationship" className={inputCls} placeholder="e.g. Grandma" value={f.kin_relationship} onChange={set('kin_relationship')} />
                 </div>
+              </div>
+              <div>
+                <label className="field-label" htmlFor="kin_address">
+                  Their address <span className="font-normal text-ink/45">(optional)</span>
+                </label>
+                <input
+                  id="kin_address"
+                  className={inputCls}
+                  placeholder="House number, street, town, postcode"
+                  value={f.kin_address}
+                  onChange={set('kin_address')}
+                />
               </div>
             </div>
 
