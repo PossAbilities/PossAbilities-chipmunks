@@ -55,10 +55,12 @@ curl -X POST -H "x-cron-secret: $CRON_SECRET" https://your-site/api/cron/reminde
 
 There's also a **"Send tomorrow's reminders"** button in the admin area.
 
-## Changing the branding & content
+## Branding & content
 
-- **Colours**: one place — the CSS variables at the top of `app/globals.css` (the email colours mirror them in `lib/email/templates.ts`). Swap in the official PossAbilities palette when ready.
-- **Fonts**: loaded in `app/layout.tsx` (currently Baloo 2 + Nunito from Google Fonts).
+The site follows **PossAbilities Brand Manual 1.1**: pink `#E43092`, indigo `#362B74`, teal `#4BC1B9`, duck-egg `#D6EEEE`, plum `#7B3179`, the signature double-wave motif (`components/Wave.tsx`), the logo mark (`components/PossLogo.tsx`) and the "Live The Life You Choose" tagline.
+
+- **Colours**: one place — the CSS variables at the top of `app/globals.css` (the email colours mirror them in `lib/email/templates.ts`).
+- **Fonts**: loaded in `app/layout.tsx` (Quicksand for headings + Nunito for body, the closest Google Fonts to the brand's rounded type).
 - **All copy, prices, contact details, activities, FAQs**: `content/site.ts`.
 - **Club dates & capacity**: Admin area → Days.
 

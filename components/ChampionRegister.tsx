@@ -97,8 +97,8 @@ export default function ChampionRegister({
   });
 
   return (
-    <main className="min-h-screen bg-cream pb-24">
-      <header className="bg-brand-deep text-white sticky top-0 z-30 shadow-lift">
+    <main className="min-h-screen bg-mist pb-24">
+      <header className="bg-indigo text-white sticky top-0 z-30 shadow-lift">
         <div className="mx-auto max-w-3xl px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-2xl">🐿️</span>
@@ -129,14 +129,14 @@ export default function ChampionRegister({
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-          {sessionInfo?.label && <span className="font-display font-bold text-brand-deep">{sessionInfo.label}</span>}
+          {sessionInfo?.label && <span className="font-display font-bold text-indigo">{sessionInfo.label}</span>}
           <div className="ml-auto flex gap-2 text-center">
             <div className="rounded-xl bg-white border border-ink/5 shadow-soft px-3.5 py-1.5">
-              <div className="font-display font-extrabold text-leaf text-lg leading-none">{stats.here}</div>
+              <div className="font-display font-extrabold text-teal text-lg leading-none">{stats.here}</div>
               <div className="text-[10px] font-bold text-ink/50 uppercase">Here</div>
             </div>
             <div className="rounded-xl bg-white border border-ink/5 shadow-soft px-3.5 py-1.5">
-              <div className="font-display font-extrabold text-acorn text-lg leading-none">{stats.expected}</div>
+              <div className="font-display font-extrabold text-plum text-lg leading-none">{stats.expected}</div>
               <div className="text-[10px] font-bold text-ink/50 uppercase">Due</div>
             </div>
             <div className="rounded-xl bg-white border border-ink/5 shadow-soft px-3.5 py-1.5">
@@ -159,7 +159,7 @@ export default function ChampionRegister({
               key={key}
               onClick={() => setFilter(key)}
               className={`rounded-full px-4 py-1.5 text-sm font-extrabold transition-colors ${
-                filter === key ? 'bg-brand text-white' : 'bg-white text-ink/60 border border-ink/10'
+                filter === key ? 'bg-pink text-white' : 'bg-white text-ink/60 border border-ink/10'
               }`}
             >
               {label}
@@ -187,7 +187,7 @@ export default function ChampionRegister({
               <div
                 key={c.booking_day_id}
                 className={`rounded-blob bg-white border-2 shadow-soft overflow-hidden transition-colors ${
-                  gone ? 'border-ink/10 opacity-70' : here ? 'border-leaf/50' : 'border-ink/5'
+                  gone ? 'border-ink/10 opacity-70' : here ? 'border-teal/50' : 'border-ink/5'
                 }`}
               >
                 <div className="flex items-center gap-4 p-4">
@@ -197,10 +197,10 @@ export default function ChampionRegister({
                     <img
                       src={`/api/uploads/${c.photo}`}
                       alt={`${c.child_first} ${c.child_last}`}
-                      className="h-16 w-16 rounded-2xl object-cover border-2 border-brand/20 shrink-0"
+                      className="h-16 w-16 rounded-2xl object-cover border-2 border-pink/20 shrink-0"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-2xl bg-brand/10 flex items-center justify-center text-2xl font-display font-extrabold text-brand shrink-0">
+                    <div className="h-16 w-16 rounded-2xl bg-pink/10 flex items-center justify-center text-2xl font-display font-extrabold text-pink shrink-0">
                       {c.child_first[0]}
                       {c.child_last[0]}
                     </div>
@@ -211,7 +211,7 @@ export default function ChampionRegister({
                         {c.child_first} {c.child_last}
                       </span>
                       {hasMedical && (
-                        <span className="shrink-0 rounded-full bg-acorn/15 text-acorn text-[10px] font-extrabold px-2 py-0.5">
+                        <span className="shrink-0 rounded-full bg-plum/15 text-plum text-[10px] font-extrabold px-2 py-0.5">
                           ⚕️ MEDICAL
                         </span>
                       )}
@@ -220,14 +220,14 @@ export default function ChampionRegister({
                       {here && `Checked in ${timeOf(c.checked_in_at)}${c.checked_in_by ? ` by ${c.checked_in_by}` : ''}`}
                       {gone && `Went home ${timeOf(c.checked_out_at)}`}
                       {!c.checked_in_at && `Due today · ${c.ref}`}
-                      <span className="ml-1 text-brand/60">{open ? '▴ less' : '▾ details'}</span>
+                      <span className="ml-1 text-pink/60">{open ? '▴ less' : '▾ details'}</span>
                     </div>
                   </button>
                   {/* action button */}
                   {!c.checked_in_at && (
                     <button
                       onClick={() => act(c.booking_day_id, 'in')}
-                      className="btn bg-leaf text-white px-5 py-3 text-base font-extrabold shrink-0 hover:bg-leaf/85 active:scale-95"
+                      className="btn bg-teal text-white px-5 py-3 text-base font-extrabold shrink-0 hover:bg-teal/85 active:scale-95"
                     >
                       ✓ Check in
                     </button>
@@ -235,7 +235,7 @@ export default function ChampionRegister({
                   {here && (
                     <button
                       onClick={() => act(c.booking_day_id, 'out')}
-                      className="btn bg-sunshine text-ink px-5 py-3 text-base font-extrabold shrink-0 hover:bg-sunshine/80 active:scale-95"
+                      className="btn bg-indigo text-white px-5 py-3 text-base font-extrabold shrink-0 hover:bg-indigo-deep active:scale-95"
                     >
                       Home time
                     </button>
@@ -251,7 +251,7 @@ export default function ChampionRegister({
                 </div>
 
                 {open && (
-                  <div className="border-t border-ink/5 bg-cream/50 p-4 grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm animate-pop-in">
+                  <div className="border-t border-ink/5 bg-mist/50 p-4 grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm animate-pop-in">
                     <Info label="Parent / guardian" value={`${c.parent_name} · ${c.parent_phone}`} strong />
                     <Info label="Next of kin" value={[c.kin_name, c.kin_phone, c.kin_relationship].filter(Boolean).join(' · ')} />
                     <Info label="Allowed to collect" value={c.pickup_names} strong />
@@ -263,7 +263,7 @@ export default function ChampionRegister({
                     <Info label="Anything else" value={c.anything_else} />
                     {c.checked_in_at && (
                       <div className="sm:col-span-2 pt-1">
-                        <button onClick={() => act(c.booking_day_id, 'undo-in')} className="text-xs font-bold text-acorn/70 hover:text-acorn">
+                        <button onClick={() => act(c.booking_day_id, 'undo-in')} className="text-xs font-bold text-plum/70 hover:text-plum">
                           Undo check-in (marked by mistake)
                         </button>
                       </div>
@@ -283,10 +283,10 @@ function Info({ label, value, warn = false, strong = false }: { label: string; v
   if (!value) return null;
   return (
     <div>
-      <div className={`text-[10px] font-extrabold uppercase tracking-wide ${warn ? 'text-acorn/70' : 'text-ink/40'}`}>
+      <div className={`text-[10px] font-extrabold uppercase tracking-wide ${warn ? 'text-plum/70' : 'text-ink/40'}`}>
         {label}
       </div>
-      <div className={`${warn ? 'text-acorn font-bold' : strong ? 'text-ink font-bold' : 'text-ink/75'}`}>{value}</div>
+      <div className={`${warn ? 'text-plum font-bold' : strong ? 'text-ink font-bold' : 'text-ink/75'}`}>{value}</div>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export default function BookPage() {
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14">
         <div className="text-center">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-deep">Book a day at Chipmunks</h1>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-indigo">Book a day at Chipmunks</h1>
           <p className="mt-3 text-lg text-ink/60">
             One form per child — it takes about 3 minutes. £{site.session.pricePerDay} per day,{' '}
             {site.session.startTime}–{site.session.endTime}.

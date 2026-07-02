@@ -14,15 +14,17 @@ export const site = {
   intro:
     'The Chipmunks is our school holiday club where children come to the PossAbilities hub in Heywood for big days out without going anywhere at all — feeding and caring for the animals on our farm, exploring the immersive sensory room, and joining in games, crafts and activities led by our friendly Activity Champions.',
 
-  // Contact + venue — update when confirmed
+  tagline: 'Live The Life You Choose',
+
+  // Contact + venue (from the PossAbilities brand manual)
   venue: {
-    name: 'PossAbilities Hub',
-    addressLines: ['Heywood', 'Greater Manchester'],
-    postcode: '',
+    name: 'The Cherwell Centre',
+    addressLines: ['Cherwell Avenue', 'Heywood'],
+    postcode: 'OL10 4SY',
   },
   contact: {
     email: 'digital@possabilities.org.uk',
-    phone: '01706 000 000', // TODO: replace with the Chipmunks phone line
+    phone: '01706 982 181',
     website: 'https://www.possabilities.org.uk',
   },
 
@@ -87,6 +89,22 @@ export const site = {
     { time: '1:00pm', title: 'Immersive room & crafts', detail: 'Groups rotate between the immersive room and craft tables.' },
     { time: '2:30pm', title: 'Big game finale', detail: 'Everyone together for the afternoon’s big game.' },
     { time: '3:30pm', title: 'Home time', detail: 'Pick up, plus a rundown of what we got up to.' },
+  ],
+
+  // Placeholder quotes — swap for real family feedback when you have it
+  testimonials: [
+    {
+      quote: 'He talks about the animals for days afterwards. Chipmunks is the first club he actually asks to go back to.',
+      name: 'Parent of a 7-year-old Chipmunk',
+    },
+    {
+      quote: 'The team knew about her allergies before we even reminded them. We felt completely at ease all day.',
+      name: 'Mum of a first-time Chipmunk',
+    },
+    {
+      quote: 'The immersive room blew his mind — he told everyone he went to space during the holidays!',
+      name: 'Dad of a 9-year-old Chipmunk',
+    },
   ],
 
   faqs: [

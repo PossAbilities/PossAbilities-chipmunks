@@ -129,16 +129,16 @@ export default function AdminDashboard() {
 
   const chip = (status: string) =>
     ({
-      confirmed: 'bg-leaf/15 text-leaf',
-      cancelled: 'bg-acorn/15 text-acorn',
-      sent: 'bg-leaf/15 text-leaf',
-      outbox: 'bg-sunshine/30 text-ink/70',
-      failed: 'bg-acorn/15 text-acorn',
+      confirmed: 'bg-teal/15 text-teal',
+      cancelled: 'bg-plum/15 text-plum',
+      sent: 'bg-teal/15 text-teal',
+      outbox: 'bg-duck text-indigo/70',
+      failed: 'bg-plum/15 text-plum',
     })[status] || 'bg-ink/10 text-ink/60';
 
   return (
-    <main className="min-h-screen bg-cream">
-      <header className="bg-brand-deep text-white">
+    <main className="min-h-screen bg-mist">
+      <header className="bg-indigo text-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="text-2xl">🐿️</span>
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
               key={t}
               onClick={() => setTab(t)}
               className={`rounded-t-xl px-5 py-2.5 font-display font-bold text-sm transition-colors ${
-                tab === t ? 'bg-cream text-brand-deep' : 'text-white/60 hover:text-white'
+                tab === t ? 'bg-mist text-indigo' : 'text-white/60 hover:text-white'
               }`}
             >
               {t}
@@ -170,9 +170,9 @@ export default function AdminDashboard() {
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
         {notice && (
-          <div className="mb-5 rounded-2xl bg-leaf/10 border border-leaf/25 px-5 py-3 font-bold text-leaf flex justify-between items-center">
+          <div className="mb-5 rounded-2xl bg-teal/10 border border-teal/25 px-5 py-3 font-bold text-teal flex justify-between items-center">
             {notice}
-            <button className="text-leaf/60" onClick={() => setNotice('')}>✕</button>
+            <button className="text-teal/60" onClick={() => setNotice('')}>✕</button>
           </div>
         )}
 
@@ -276,7 +276,7 @@ export default function AdminDashboard() {
                       </span>
                     </td>
                     <td>
-                      <a className="text-brand font-bold text-sm hover:underline" href={`/api/emails/${e.id}`} target="_blank">
+                      <a className="text-pink font-bold text-sm hover:underline" href={`/api/emails/${e.id}`} target="_blank">
                         View
                       </a>
                     </td>
@@ -313,8 +313,8 @@ function FragmentRow({
 }) {
   return (
     <>
-      <tr className={`cursor-pointer hover:bg-cream/60 ${b.status === 'cancelled' ? 'opacity-50' : ''}`} onClick={toggle}>
-        <td className="font-mono font-bold text-brand-deep whitespace-nowrap">{b.ref}</td>
+      <tr className={`cursor-pointer hover:bg-mist/60 ${b.status === 'cancelled' ? 'opacity-50' : ''}`} onClick={toggle}>
+        <td className="font-mono font-bold text-indigo whitespace-nowrap">{b.ref}</td>
         <td className="font-bold whitespace-nowrap">
           {b.child_first} {b.child_last}
           {(b.medical_conditions || b.allergies || b.medication) && (
@@ -333,7 +333,7 @@ function FragmentRow({
       </tr>
       {open && (
         <tr>
-          <td colSpan={6} className="!bg-cream/50">
+          <td colSpan={6} className="!bg-mist/50">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 p-4 text-sm">
               <Detail label="Date of birth" value={b.child_dob} />
               <Detail label="Relationship" value={b.relationship} />
@@ -351,15 +351,15 @@ function FragmentRow({
             </div>
             <div className="px-4 pb-4 flex gap-2">
               {b.status === 'confirmed' ? (
-                <button className="btn-small bg-acorn/10 text-acorn font-bold rounded-full" onClick={() => setStatus(b.id, 'cancelled')}>
+                <button className="btn-small bg-plum/10 text-plum font-bold rounded-full" onClick={() => setStatus(b.id, 'cancelled')}>
                   Cancel booking
                 </button>
               ) : (
-                <button className="btn-small bg-leaf/10 text-leaf font-bold rounded-full" onClick={() => setStatus(b.id, 'confirmed')}>
+                <button className="btn-small bg-teal/10 text-teal font-bold rounded-full" onClick={() => setStatus(b.id, 'confirmed')}>
                   Restore booking
                 </button>
               )}
-              <a className="btn-small bg-brand/10 text-brand font-bold rounded-full" href={`mailto:${b.parent_email}`}>
+              <a className="btn-small bg-pink/10 text-pink font-bold rounded-full" href={`mailto:${b.parent_email}`}>
                 Email parent
               </a>
             </div>
@@ -438,7 +438,7 @@ function DaysTab({ sessions, reload }: { sessions: SessionRow[]; reload: () => v
           <input id="new-cap" type="number" min={1} className="field-input !w-24" value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} />
         </div>
         <button className="btn-primary !py-3">+ Add day</button>
-        {err && <div className="w-full text-sm font-bold text-acorn">{err}</div>}
+        {err && <div className="w-full text-sm font-bold text-plum">{err}</div>}
       </form>
 
       <div className="rounded-2xl bg-white border border-ink/5 shadow-soft overflow-x-auto">
@@ -464,7 +464,7 @@ function DaysTab({ sessions, reload }: { sessions: SessionRow[]; reload: () => v
                   />
                 </td>
                 <td className="whitespace-nowrap">
-                  <span className={`font-extrabold ${s.booked >= s.capacity ? 'text-acorn' : 'text-leaf'}`}>{s.booked}</span>
+                  <span className={`font-extrabold ${s.booked >= s.capacity ? 'text-plum' : 'text-teal'}`}>{s.booked}</span>
                   {' / '}
                   <input
                     type="number"
@@ -477,13 +477,13 @@ function DaysTab({ sessions, reload }: { sessions: SessionRow[]; reload: () => v
                 <td>
                   <button
                     onClick={() => patch(s.id, { active: !s.active })}
-                    className={`rounded-full px-3 py-1 text-xs font-extrabold ${s.active ? 'bg-leaf/15 text-leaf' : 'bg-ink/10 text-ink/50'}`}
+                    className={`rounded-full px-3 py-1 text-xs font-extrabold ${s.active ? 'bg-teal/15 text-teal' : 'bg-ink/10 text-ink/50'}`}
                   >
                     {s.active ? 'Bookable' : 'Hidden'}
                   </button>
                 </td>
                 <td className="text-right">
-                  <button onClick={() => remove(s.id)} className="text-acorn/70 hover:text-acorn font-bold text-sm">
+                  <button onClick={() => remove(s.id)} className="text-plum/70 hover:text-plum font-bold text-sm">
                     Delete
                   </button>
                 </td>

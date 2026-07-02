@@ -46,11 +46,11 @@ export default function LoginForm({
       >
         <div className="text-center">
           <span className="text-5xl">🐿️</span>
-          <h1 className="mt-3 text-2xl font-extrabold text-brand-deep">{title}</h1>
+          <h1 className="mt-3 text-2xl font-extrabold text-indigo">{title}</h1>
           <p className="mt-1 text-sm text-ink/55">{subtitle}</p>
         </div>
         {error && (
-          <div className="mt-5 rounded-xl bg-acorn/10 border border-acorn/30 px-4 py-2.5 text-sm font-bold text-acorn">
+          <div className="mt-5 rounded-xl bg-plum/10 border border-plum/30 px-4 py-2.5 text-sm font-bold text-plum">
             {error}
           </div>
         )}

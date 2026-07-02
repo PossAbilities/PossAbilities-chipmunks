@@ -153,13 +153,13 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
   /* ── Success screen ─────────────────────────────────── */
   if (doneRef) {
     return (
-      <div className="animate-pop-in rounded-blob bg-white border border-leaf/20 shadow-lift p-8 sm:p-12 text-center">
+      <div className="animate-pop-in rounded-blob bg-white border border-teal/20 shadow-lift p-8 sm:p-12 text-center">
         <div className="text-7xl animate-wiggle inline-block">🎉</div>
-        <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-leaf">You’re booked in!</h2>
+        <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-teal">You’re booked in!</h2>
         <p className="mt-4 text-lg text-ink/70 max-w-md mx-auto">
           {f.child_first} is coming to Chipmunks! Your booking reference is
         </p>
-        <div className="mt-4 inline-block rounded-2xl bg-sunshine/30 border-2 border-sunshine px-8 py-3 font-display text-2xl font-extrabold tracking-widest text-ink">
+        <div className="mt-4 inline-block rounded-2xl bg-teal/15 border-2 border-teal px-8 py-3 font-display text-2xl font-extrabold tracking-widest text-indigo">
           {doneRef}
         </div>
         <p className="mt-6 text-ink/60 max-w-md mx-auto">
@@ -178,16 +178,16 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
   return (
     <div className="rounded-blob bg-white border border-ink/5 shadow-lift overflow-hidden">
       {/* Progress */}
-      <div className="bg-brand-deep px-6 sm:px-10 pt-6 pb-5">
+      <div className="bg-indigo px-6 sm:px-10 pt-6 pb-5">
         <div className="flex justify-between">
           {STEPS.map((label, i) => (
             <div key={label} className="flex flex-col items-center gap-1.5 flex-1">
               <div
                 className={`flex h-9 w-9 items-center justify-center rounded-full font-display font-extrabold text-sm transition-all duration-300 ${
                   i < step
-                    ? 'bg-leaf text-white'
+                    ? 'bg-teal text-white'
                     : i === step
-                      ? 'bg-sunshine text-ink scale-110 shadow-lift'
+                      ? 'bg-pink text-white scale-110 shadow-pink'
                       : 'bg-white/15 text-white/50'
                 }`}
               >
@@ -201,7 +201,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
         </div>
         <div className="mt-4 h-1.5 rounded-full bg-white/15 overflow-hidden">
           <div
-            className="h-full rounded-full bg-sunshine transition-all duration-500"
+            className="h-full rounded-full bg-pink transition-all duration-500"
             style={{ width: `${(step / (STEPS.length - 1)) * 100}%` }}
           />
         </div>
@@ -209,7 +209,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
 
       <div className="p-6 sm:p-10">
         {error && (
-          <div className="mb-6 animate-pop-in rounded-2xl bg-acorn/10 border border-acorn/30 px-5 py-3.5 font-bold text-acorn">
+          <div className="mb-6 animate-pop-in rounded-2xl bg-plum/10 border border-plum/30 px-5 py-3.5 font-bold text-plum">
             {error}
           </div>
         )}
@@ -224,7 +224,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
             {sessions.length === 0 && (
               <p className="mt-6 text-ink/60">
                 No dates are open for booking right now — email{' '}
-                <a href={`mailto:${site.contact.email}`} className="text-brand font-bold underline">
+                <a href={`mailto:${site.contact.email}`} className="text-pink font-bold underline">
                   {site.contact.email}
                 </a>{' '}
                 and we’ll let you know as soon as new dates land.
@@ -246,10 +246,10 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                     }
                     className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
                       full
-                        ? 'opacity-50 cursor-not-allowed border-ink/10 bg-cream'
+                        ? 'opacity-50 cursor-not-allowed border-ink/10 bg-mist'
                         : active
-                          ? 'border-brand bg-brand/5 shadow-soft -translate-y-0.5'
-                          : 'border-ink/10 bg-white hover:border-brand/40 hover:-translate-y-0.5'
+                          ? 'border-pink bg-pink/5 shadow-soft -translate-y-0.5'
+                          : 'border-ink/10 bg-white hover:border-pink/40 hover:-translate-y-0.5'
                     }`}
                   >
                     <span>
@@ -260,7 +260,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                     </span>
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-sm font-extrabold transition-all ${
-                        active ? 'bg-brand border-brand text-white' : 'border-ink/20 text-transparent'
+                        active ? 'bg-pink border-pink text-white' : 'border-ink/20 text-transparent'
                       }`}
                     >
                       ✓
@@ -295,17 +295,17 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
             </div>
 
             {/* Photo */}
-            <div className="rounded-2xl bg-sky/5 border border-sky/20 p-5">
+            <div className="rounded-2xl bg-teal/5 border border-teal/20 p-5">
               <div className="flex items-start gap-4">
                 {photoPreview ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={photoPreview}
                     alt="Preview of your child's photo"
-                    className="h-24 w-24 rounded-2xl object-cover border-2 border-sky/40 shadow-soft"
+                    className="h-24 w-24 rounded-2xl object-cover border-2 border-teal/40 shadow-soft"
                   />
                 ) : (
-                  <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-sky/10 text-4xl">📸</div>
+                  <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-teal/10 text-4xl">📸</div>
                 )}
                 <div className="flex-1">
                   <div className="font-bold text-ink">Add a photo of your child</div>
@@ -319,7 +319,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                     {photoPreview && (
                       <button
                         type="button"
-                        className="btn-small text-ink/50 hover:text-acorn font-bold"
+                        className="btn-small text-ink/50 hover:text-plum font-bold"
                         onClick={() => {
                           photoBlob.current = null;
                           setPhotoPreview('');
@@ -385,7 +385,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               </div>
             </div>
 
-            <div className="rounded-2xl bg-cream border border-ink/8 p-5 space-y-4">
+            <div className="rounded-2xl bg-mist border border-ink/8 p-5 space-y-4">
               <div className="font-bold text-ink">Second emergency contact (next of kin)</div>
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
@@ -462,8 +462,8 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               <h2 className="text-2xl font-extrabold text-ink">Nearly there — check & consent</h2>
             </div>
 
-            <div className="rounded-2xl bg-cream border border-ink/8 p-5 text-sm leading-7">
-              <div className="font-display font-extrabold text-lg text-brand-deep mb-1">
+            <div className="rounded-2xl bg-mist border border-ink/8 p-5 text-sm leading-7">
+              <div className="font-display font-extrabold text-lg text-indigo mb-1">
                 {f.child_first} {f.child_last}
               </div>
               <div>
@@ -502,17 +502,17 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
                 <label
                   key={c.key}
                   className={`flex items-start gap-3.5 rounded-2xl border-2 p-4 cursor-pointer transition-colors ${
-                    f[c.key] ? 'border-leaf bg-leaf/5' : 'border-ink/10 bg-white hover:border-ink/25'
+                    f[c.key] ? 'border-teal bg-teal/5' : 'border-ink/10 bg-white hover:border-ink/25'
                   }`}
                 >
                   <input
                     type="checkbox"
                     checked={f[c.key]}
                     onChange={set(c.key)}
-                    className="mt-1 h-5 w-5 accent-[rgb(var(--leaf))]"
+                    className="mt-1 h-5 w-5 accent-[rgb(var(--pa-teal))]"
                   />
                   <span className="text-sm leading-relaxed text-ink/75">
-                    {c.label} {c.required && <strong className="text-acorn">*</strong>}
+                    {c.label} {c.required && <strong className="text-plum">*</strong>}
                   </span>
                 </label>
               ))}

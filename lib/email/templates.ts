@@ -7,14 +7,17 @@ import { formatDateLong } from '@/lib/db';
  * brand tokens; update BRAND below alongside app/globals.css when the
  * official guidelines arrive.
  */
+/** PossAbilities Brand Manual 1.1 palette — mirrors app/globals.css */
 const BRAND = {
-  purple: '#6D28D9',
-  purpleDeep: '#4C1D95',
-  acorn: '#EA580C',
-  leaf: '#0D9488',
-  sunshine: '#FACC15',
-  cream: '#FFFAF2',
-  ink: '#2E2A47',
+  purple: '#362B74', // brand indigo (headers, headings)
+  purpleDeep: '#251D52',
+  pink: '#E43092',
+  acorn: '#7B3179', // plum accent
+  leaf: '#4BC1B9', // brand teal
+  sunshine: '#4BC1B9',
+  cream: '#F4FAFA', // pale duck-egg page background
+  duck: '#D6EEEE',
+  ink: '#2B2453',
 };
 
 function esc(s: string): string {
@@ -39,11 +42,14 @@ function shell(title: string, preheader: string, body: string): string {
   <tr><td style="background-color:${BRAND.purple};border-radius:24px 24px 0 0;padding:32px 40px;text-align:center;">
     <div style="font-size:44px;line-height:1;">🐿️</div>
     <div style="color:#ffffff;font-size:28px;font-weight:800;letter-spacing:0.5px;padding-top:8px;">The Chipmunks</div>
-    <div style="color:#DDD3F5;font-size:14px;font-weight:600;padding-top:4px;">School holiday adventures at ${esc(site.orgName)}</div>
+    <div style="font-size:15px;font-weight:700;padding-top:4px;">
+      <span style="color:#B9B4D8;">at </span><span style="color:${BRAND.pink};">Poss</span><span style="color:#ffffff;">Abilities</span>
+    </div>
   </td></tr>
 
-  <!-- Sunshine stripe -->
-  <tr><td style="background-color:${BRAND.sunshine};height:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
+  <!-- Teal + pink brand stripes -->
+  <tr><td style="background-color:${BRAND.leaf};height:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
+  <tr><td style="background-color:${BRAND.pink};height:3px;font-size:0;line-height:0;">&nbsp;</td></tr>
 
   <!-- Body -->
   <tr><td style="background-color:#ffffff;padding:36px 40px;">
@@ -52,6 +58,7 @@ function shell(title: string, preheader: string, body: string): string {
 
   <!-- Footer -->
   <tr><td style="background-color:${BRAND.ink};border-radius:0 0 24px 24px;padding:28px 40px;text-align:center;">
+    <div style="color:${BRAND.leaf};font-size:14px;font-weight:700;font-style:italic;padding-bottom:10px;">“${esc(site.tagline)}”</div>
     <div style="color:#ffffff;font-size:15px;font-weight:700;">${esc(site.orgName)} · ${esc(site.venue.name)}</div>
     <div style="color:#B9B4CE;font-size:13px;padding-top:6px;line-height:1.6;">
       ${esc(site.venue.addressLines.join(', '))}<br>
@@ -72,18 +79,18 @@ function daysTable(dates: string[]): string {
   const rows = dates
     .map(
       (d, i) => `<tr>
-      <td style="padding:10px 16px;border-top:${i === 0 ? 'none' : `1px solid #EEE9F8`};">
+      <td style="padding:10px 16px;border-top:${i === 0 ? 'none' : `1px solid #D6EEEE`};">
         <span style="display:inline-block;background-color:${BRAND.purple};color:#fff;border-radius:999px;font-size:12px;font-weight:700;padding:3px 10px;margin-right:10px;">Day ${i + 1}</span>
         <span style="color:${BRAND.ink};font-size:15px;font-weight:700;">${esc(formatDateLong(d))}</span>
       </td></tr>`
     )
     .join('');
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7F3FE;border-radius:16px;margin:18px 0;">${rows}</table>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#E9F6F6;border-radius:16px;margin:18px 0;">${rows}</table>`;
 }
 
 function infoCard(colour: string, title: string, inner: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;">
-  <tr><td style="border-left:5px solid ${colour};background-color:#FBFAF7;border-radius:12px;padding:16px 20px;">
+  <tr><td style="border-left:5px solid ${colour};background-color:#F6FBFB;border-radius:12px;padding:16px 20px;">
     <div style="color:${BRAND.ink};font-size:15px;font-weight:800;padding-bottom:6px;">${title}</div>
     <div style="color:#5B5675;font-size:14px;line-height:1.7;">${inner}</div>
   </td></tr></table>`;
