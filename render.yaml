@@ -1,0 +1,50 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploy: on render.com choose "New +" → "Blueprint", connect this repo,
+# and Render reads this file to provision everything below in one go.
+# You'll be prompted to fill in the "sync: false" secrets during setup.
+#
+# The persistent disk keeps the SQLite database and uploaded child
+# photos/signatures across deploys and restarts.
+
+services:
+  - type: web
+    name: chipmunks
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: chipmunks-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CHIPMUNKS_DATA_DIR
+        value: /var/data
+      # Signs admin/champion login cookies — Render generates a random value
+      - key: SESSION_SECRET
+        generateValue: true
+      # Protects the reminder-email cron endpoint — Render generates a random value
+      - key: CRON_SECRET
+        generateValue: true
+      # Fill these in during setup (see README → Deploying to Render)
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CHAMPION_PIN
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false

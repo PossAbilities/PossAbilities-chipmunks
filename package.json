@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "The Chipmunks holiday club at PossAbilities — landing page, booking system, admin area and Activity Champion check-in register.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

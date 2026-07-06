@@ -55,6 +55,30 @@ curl -X POST -H "x-cron-secret: $CRON_SECRET" https://your-site/api/cron/reminde
 
 There's also a **"Send tomorrow's reminders"** button in the admin area.
 
+## Deploying to Render
+
+This app stores its database and uploaded photos/signatures as local files, so it needs a host with a **persistent disk** rather than a serverless platform (Vercel/Netlify will silently lose data). [Render](https://render.com) works well and has a generous free/low-cost tier. A `render.yaml` blueprint is included, so most of the setup is automatic:
+
+1. **Push this repo to GitHub** if it isn't already (it is — branch `claude/chipmunks-landing-page-dqph1h`). Render deploys from a single branch, so either merge this branch into `main`, or edit the `branch:` line in `render.yaml` to point at the branch you want live.
+2. **Sign up at [render.com](https://render.com)** and connect your GitHub account.
+3. Click **New +** → **Blueprint**, choose this repository. Render reads `render.yaml` and shows you everything it's about to create: one web service plus a 1 GB persistent disk.
+4. Render will ask you to fill in a few secret values before deploying:
+   - `ADMIN_PASSWORD` — the password for `/admin`
+   - `CHAMPION_PIN` — the PIN for `/champion`
+   - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — leave these blank for now if you don't have email sending details yet; confirmation/reminder emails will simply sit in the **Admin → Emails** outbox until you add them later (Render → your service → Environment tab)
+   - `SESSION_SECRET` and `CRON_SECRET` are generated for you automatically
+5. Click **Apply** / **Deploy**. The first build takes a few minutes (it compiles the SQLite native module). You'll get a live URL like `https://chipmunks.onrender.com`.
+6. **Set up daily reminders**: Render's dashboard has its own **Cron Jobs** feature (New + → Cron Job). Point it at your live URL:
+   ```bash
+   curl -X POST -H "x-cron-secret: YOUR_CRON_SECRET_VALUE" https://chipmunks.onrender.com/api/cron/reminders
+   ```
+   scheduled for once a day (e.g. `0 16 * * *` for 4pm). Find `CRON_SECRET`'s generated value in Render → your service → Environment tab.
+7. **Custom domain**: Render → your service → Settings → Custom Domains, then add a CNAME record with your domain registrar pointing at the address Render gives you (e.g. `chipmunks.possabilities.org.uk`).
+
+Prefer Railway or Fly.io instead? Both also offer persistent volumes and work the same way in principle — create a service from this GitHub repo, mount a volume at a path, and set `CHIPMUNKS_DATA_DIR` to that path alongside the same environment variables listed above.
+
+**Before sharing the live link with anyone**, replace the dev-default `ADMIN_PASSWORD`/`CHAMPION_PIN` with real ones (done automatically above) and fill in real SMTP details so families actually receive confirmation and reminder emails rather than them sitting in the outbox.
+
 ## Branding & content
 
 The site follows **PossAbilities Brand Manual 1.1**: pink `#E43092`, indigo `#362B74`, teal `#4BC1B9`, duck-egg `#D6EEEE`, plum `#7B3179`, the signature double-wave motif (`components/Wave.tsx`), the logo mark (`components/PossLogo.tsx`) and the "Live The Life You Choose" tagline.
