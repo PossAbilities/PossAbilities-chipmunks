@@ -41,10 +41,10 @@ export async function POST(req: NextRequest) {
   const { subject, html } = magicLinkEmail({ name: admin.name || email, link });
   const sent = await sendEmail({ to: email, subject, html, kind: 'magic-link' });
 
-  // In local/demo use without SMTP configured, hand back the link directly so
-  // sign-in can still be tested — production always has SMTP set, so this
-  // never applies once real email is going out.
-  if (!process.env.SMTP_HOST) {
+  // In local/demo use without Resend or SMTP configured, hand back the link
+  // directly so sign-in can still be tested — production always has one of
+  // these set, so this never applies once real email is going out.
+  if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
     return NextResponse.json({ ok: true, message: GENERIC_MESSAGE, devLink: link, devEmailStatus: sent.status });
   }
   return generic();

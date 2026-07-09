@@ -16,7 +16,7 @@ A complete website and booking system for **The Chipmunks**, the school-holiday 
 - **Reminder** — "see you tomorrow" email, sent automatically for the next day's session (idempotent — safe to run repeatedly)
 - **Cancellation** — sent when a booking is cancelled in the admin area
 
-Without SMTP configured, every email is stored in the **Admin → Emails** outbox so you can preview exactly what families receive. Configure SMTP (below) to actually send.
+Without Resend or SMTP configured, every email is stored in the **Admin → Emails** outbox so you can preview exactly what families receive. Configure one (below) to actually send.
 
 ## Running it
 
@@ -39,7 +39,8 @@ Copy `.env.example` to `.env` and set:
 | `ADMIN_PASSWORD` | Admin area password (dev default: `chipmunks-admin`) |
 | `CHAMPION_PIN` | PIN for the Champion register (dev default: `2468`) |
 | `CRON_SECRET` | Protects the reminder endpoint |
-| `SMTP_HOST/PORT/USER/PASS/FROM` | Email sending — leave empty to keep emails in the outbox |
+| `RESEND_API_KEY` / `EMAIL_FROM` | **Recommended** — send email via [Resend](https://resend.com), just an API key |
+| `SMTP_HOST/PORT/USER/PASS/FROM` | Alternative to Resend — used only if `RESEND_API_KEY` isn't set |
 
 ## Daily reminder emails
 
@@ -65,7 +66,9 @@ This app stores its database and uploaded photos/signatures as local files, so i
 4. Render will ask you to fill in a few secret values before deploying:
    - `ADMIN_PASSWORD` — the password for `/admin`
    - `CHAMPION_PIN` — the PIN for `/champion`
-   - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — leave these blank for now if you don't have email sending details yet; confirmation/reminder emails will simply sit in the **Admin → Emails** outbox until you add them later (Render → your service → Environment tab)
+   - `RESEND_API_KEY` and `EMAIL_FROM` — the easiest way to send real email (sign up free at [resend.com](https://resend.com), verify your sending domain, create an API key). Leave `SMTP_HOST/USER/PASS/FROM` blank if you're using this.
+   - Prefer SMTP instead? Leave `RESEND_API_KEY` blank and fill in `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
+   - Leave all of the above blank for now if you don't have email sending details yet; confirmation/reminder emails will simply sit in the **Admin → Emails** outbox until you add them later (Render → your service → Environment tab)
    - `SESSION_SECRET` and `CRON_SECRET` are generated for you automatically
 5. Click **Apply** / **Deploy**. The first build takes a few minutes (it compiles the SQLite native module). You'll get a live URL like `https://chipmunks.onrender.com`.
 6. **Set up daily reminders**: Render's dashboard has its own **Cron Jobs** feature (New + → Cron Job). Point it at your live URL:
@@ -77,7 +80,7 @@ This app stores its database and uploaded photos/signatures as local files, so i
 
 Prefer Railway or Fly.io instead? Both also offer persistent volumes and work the same way in principle — create a service from this GitHub repo, mount a volume at a path, and set `CHIPMUNKS_DATA_DIR` to that path alongside the same environment variables listed above.
 
-**Before sharing the live link with anyone**, replace the dev-default `ADMIN_PASSWORD`/`CHAMPION_PIN` with real ones (done automatically above) and fill in real SMTP details so families actually receive confirmation and reminder emails rather than them sitting in the outbox.
+**Before sharing the live link with anyone**, replace the dev-default `ADMIN_PASSWORD`/`CHAMPION_PIN` with real ones (done automatically above) and fill in real Resend or SMTP details so families actually receive confirmation and reminder emails — and admins receive their magic sign-in links — rather than them sitting in the outbox.
 
 ## Branding & content
 

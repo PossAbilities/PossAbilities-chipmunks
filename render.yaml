@@ -38,6 +38,12 @@ services:
         sync: false
       - key: CHAMPION_PIN
         sync: false
+      # Recommended: Resend (https://resend.com) — just an API key, no SMTP setup.
+      # Leave blank and fill in the SMTP_* vars below instead if you'd rather use SMTP.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
