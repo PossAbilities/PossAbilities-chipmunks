@@ -87,6 +87,7 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     kin_phone: '',
     kin_relationship: '',
     kin_address: '',
+    collection_password: '',
     medical_conditions: '',
     allergies: '',
     dietary: '',
@@ -168,6 +169,9 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
         if (!f.employee_relation) return 'Please choose the child’s relationship to the PossAbilities employee.';
         if (!collectors.some((c) => c.name.trim()))
           return 'Please tell us who is allowed to collect your child — at least one person.';
+        if (!f.collection_password.trim())
+          return 'Please set a collection password, in case someone not listed needs to collect your child.';
+        if (f.collection_password.trim().length < 4) return 'Please make the collection password at least 4 characters.';
         return '';
       case 3:
         return '';
@@ -659,6 +663,23 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               <button type="button" className="btn-secondary btn-small" onClick={addCollector}>
                 + Add another person
               </button>
+            </div>
+
+            <div className="rounded-2xl bg-pink/5 border border-pink/20 p-5">
+              <label className="field-label" htmlFor="collection_password">Collection password *</label>
+              <p className="text-sm text-ink/55 -mt-1 mb-3">
+                If someone who isn’t listed above ever needs to collect {f.child_first || 'your child'} — say, in
+                an emergency — we’ll ask them for this password before releasing them to you. Choose a word or
+                phrase that’s easy to share with someone you trust.
+              </p>
+              <input
+                id="collection_password"
+                className={inputCls}
+                placeholder="e.g. a memorable word or phrase"
+                value={f.collection_password}
+                onChange={set('collection_password')}
+              />
+              <p className="field-hint">At least 4 characters. Not used for anyone already listed above.</p>
             </div>
           </div>
         )}

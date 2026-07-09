@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     employee_name: 'name of the PossAbilities employee',
     employee_id: 'employee’s payroll or Element Suite ID',
     employee_relation: 'child’s relationship to the employee',
+    collection_password: 'collection password',
   };
   for (const [key, label] of Object.entries(required)) {
     if (!str(key)) return NextResponse.json({ error: `Please provide the ${label}.` }, { status: 400 });
@@ -161,9 +162,10 @@ export async function POST(req: NextRequest) {
           kin_name, kin_phone, kin_relationship, kin_address,
           medical_conditions, allergies, dietary, medication, support_needs, gp_details,
           employee_name, employee_id, employee_relation, employee_email,
+          collection_password,
           signature, signed_name, signed_at,
           consent_photo, consent_medical, consent_activities, anything_else
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       )
       .run(
         ref,
@@ -191,6 +193,7 @@ export async function POST(req: NextRequest) {
         str('employee_id'),
         str('employee_relation'),
         str('employee_email'),
+        str('collection_password'),
         signatureName,
         str('signed_name'),
         signedAt,

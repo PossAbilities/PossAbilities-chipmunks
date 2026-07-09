@@ -29,6 +29,7 @@ interface Booking {
   kin_phone: string;
   kin_relationship: string;
   kin_address: string;
+  collection_password: string;
   employee_email: string;
   signature: string;
   signed_name: string;
@@ -464,6 +465,15 @@ function FragmentRow({
                     </div>
                   )}
                 </div>
+                <div className="mt-4">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40 mb-1">
+                    Collection password
+                  </div>
+                  <PasswordReveal value={b.collection_password} />
+                  <p className="text-xs text-ink/45 mt-1">
+                    Only needed if someone not listed above turns up to collect {b.child_first}.
+                  </p>
+                </div>
               </div>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 p-4 text-sm">
@@ -623,6 +633,23 @@ function PaymentForm({
       </button>
       <button type="button" className="btn-small text-ink/50 font-bold" onClick={onCancel}>
         Cancel
+      </button>
+    </div>
+  );
+}
+
+function PasswordReveal({ value }: { value: string }) {
+  const [show, setShow] = useState(false);
+  if (!value) return <div className="text-sm text-ink/30">— not set —</div>;
+  return (
+    <div className="flex items-center gap-2">
+      <span className="font-bold text-ink font-mono">{show ? value : '•'.repeat(Math.min(value.length, 12))}</span>
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="text-xs font-bold text-pink hover:underline"
+      >
+        {show ? 'Hide' : 'Show'}
       </button>
     </div>
   );

@@ -59,6 +59,8 @@ export default function ChampionRegister({
   const [filter, setFilter] = useState<'all' | 'expected' | 'here'>('all');
   const [checkoutFor, setCheckoutFor] = useState<number | null>(null);
   const [otherName, setOtherName] = useState('');
+  const [otherPassword, setOtherPassword] = useState('');
+  const [checkoutError, setCheckoutError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,15 +84,22 @@ export default function ChampionRegister({
     load();
   }
 
-  async function confirmCheckout(bookingDayId: number, collectedBy: string) {
+  async function confirmCheckout(bookingDayId: number, collectedBy: string, password?: string) {
     if (!collectedBy.trim()) return;
-    await fetch('/api/checkin', {
+    setCheckoutError('');
+    const res = await fetch('/api/checkin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookingDayId, action: 'out', collectedBy: collectedBy.trim() }),
+      body: JSON.stringify({ bookingDayId, action: 'out', collectedBy: collectedBy.trim(), password: password?.trim() }),
     });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setCheckoutError(body.error || 'Could not check out — please try again.');
+      return;
+    }
     setCheckoutFor(null);
     setOtherName('');
+    setOtherPassword('');
     load();
   }
 
@@ -251,7 +260,10 @@ export default function ChampionRegister({
                   )}
                   {here && checkoutFor !== c.booking_day_id && (
                     <button
-                      onClick={() => setCheckoutFor(c.booking_day_id)}
+                      onClick={() => {
+                        setCheckoutError('');
+                        setCheckoutFor(c.booking_day_id);
+                      }}
                       className="btn bg-indigo text-white px-5 py-3 text-base font-extrabold shrink-0 hover:bg-indigo-deep active:scale-95"
                     >
                       Home time
@@ -295,16 +307,25 @@ export default function ChampionRegister({
                         ))}
                       </div>
                     )}
+                    <div className="text-xs font-bold text-ink/45 mb-1.5">
+                      Not one of the people above? They’ll need the collection password.
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       <input
-                        className="field-input flex-1 min-w-[160px] !py-2"
-                        placeholder="Someone else's name"
+                        className="field-input flex-1 min-w-[140px] !py-2"
+                        placeholder="Their name"
                         value={otherName}
                         onChange={(e) => setOtherName(e.target.value)}
                       />
+                      <input
+                        className="field-input flex-1 min-w-[140px] !py-2"
+                        placeholder="Collection password"
+                        value={otherPassword}
+                        onChange={(e) => setOtherPassword(e.target.value)}
+                      />
                       <button
-                        onClick={() => confirmCheckout(c.booking_day_id, otherName)}
-                        disabled={!otherName.trim()}
+                        onClick={() => confirmCheckout(c.booking_day_id, otherName, otherPassword)}
+                        disabled={!otherName.trim() || !otherPassword.trim()}
                         className="btn-small bg-indigo text-white font-bold rounded-full disabled:opacity-40"
                       >
                         Confirm
@@ -313,12 +334,19 @@ export default function ChampionRegister({
                         onClick={() => {
                           setCheckoutFor(null);
                           setOtherName('');
+                          setOtherPassword('');
+                          setCheckoutError('');
                         }}
                         className="btn-small text-ink/50 font-bold"
                       >
                         Cancel
                       </button>
                     </div>
+                    {checkoutError && (
+                      <div className="mt-2 rounded-lg bg-plum/10 border border-plum/30 px-3 py-2 text-sm font-bold text-plum">
+                        {checkoutError}
+                      </div>
+                    )}
                   </div>
                 )}
 

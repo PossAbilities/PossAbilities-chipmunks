@@ -67,6 +67,8 @@ function migrate(db: Database.Database) {
       paid INTEGER NOT NULL DEFAULT 0,             -- payment received (marked by admin)
       paid_at TEXT,
 
+      collection_password TEXT NOT NULL DEFAULT '', -- shared word for releasing to an unlisted collector
+
       signature TEXT NOT NULL DEFAULT '',          -- signature image filename
       signed_name TEXT NOT NULL DEFAULT '',        -- typed full name at signing
       signed_at TEXT NOT NULL DEFAULT '',          -- server timestamp of signing
@@ -129,6 +131,7 @@ function migrate(db: Database.Database) {
     `ALTER TABLE bookings ADD COLUMN payment_date TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN payment_note TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE booking_days ADD COLUMN checked_out_by TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN collection_password TEXT NOT NULL DEFAULT ''`,
   ];
   for (const sql of columnMigrations) {
     try {

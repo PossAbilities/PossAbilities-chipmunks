@@ -14,10 +14,16 @@ function timeNow(): string {
   });
 }
 
+const norm = (s: string) => s.trim().toLowerCase();
+
 /**
  * Champion/Admin: record arrival and departure, and email the family.
- *   { bookingDayId, action: 'in' | 'out' | 'undo-in' | 'undo-out', collectedBy? }
- * `collectedBy` (the name of the approved person picking up) is required for 'out'.
+ *   { bookingDayId, action: 'in' | 'out' | 'undo-in' | 'undo-out', collectedBy?, password? }
+ *
+ * For 'out': `collectedBy` is required. If it matches one of the booking's
+ * named collectors, that's enough (the champion has already checked their
+ * photo). If it doesn't match anyone on the list, `password` must match the
+ * collection password the parent set at booking.
  */
 export async function POST(req: NextRequest) {
   const session = requestRole(req);
@@ -29,13 +35,20 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const row = db
     .prepare(
-      `SELECT bd.id, bd.booking_id, b.parent_email, b.parent_name, b.child_first
+      `SELECT bd.id, bd.booking_id, b.parent_email, b.parent_name, b.child_first, b.collection_password
        FROM booking_days bd
        JOIN bookings b ON b.id = bd.booking_id
        WHERE bd.id = ?`
     )
     .get(id) as
-    | { id: number; booking_id: number; parent_email: string; parent_name: string; child_first: string }
+    | {
+        id: number;
+        booking_id: number;
+        parent_email: string;
+        parent_name: string;
+        child_first: string;
+        collection_password: string;
+      }
     | undefined;
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -59,6 +72,28 @@ export async function POST(req: NextRequest) {
       if (!collectedBy) {
         return NextResponse.json({ error: 'Please say who is collecting the child.' }, { status: 400 });
       }
+
+      const listedCollectors = db
+        .prepare('SELECT name FROM booking_collectors WHERE booking_id = ?')
+        .all(row.booking_id) as { name: string }[];
+      const isListed = listedCollectors.some((c) => norm(c.name) === norm(collectedBy));
+
+      if (!isListed) {
+        const password = String(body.password || '').trim();
+        if (!password) {
+          return NextResponse.json(
+            { error: `${collectedBy} isn’t on the collection list — please ask for the collection password.` },
+            { status: 400 }
+          );
+        }
+        if (!row.collection_password || norm(password) !== norm(row.collection_password)) {
+          return NextResponse.json(
+            { error: 'That password doesn’t match what’s on file — please double-check with the parent or call the office.' },
+            { status: 400 }
+          );
+        }
+      }
+
       db.prepare('UPDATE booking_days SET checked_out_at = ?, checked_out_by = ? WHERE id = ?').run(
         now,
         collectedBy,
