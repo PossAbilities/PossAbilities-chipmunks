@@ -252,6 +252,64 @@ export function receiptEmail(
   return { subject, html: shell(subject, `Payment received for ${b.ref} — see you soon!`, body) };
 }
 
+/** Sent the moment an Activity Champion checks a child in. */
+export function checkinEmail(b: {
+  childFirst: string;
+  parentName: string;
+  time: string;
+  checkedInBy: string;
+}): { subject: string; html: string } {
+  const subject = `✅ ${b.childFirst} has arrived safely at Chipmunks`;
+  const body = `
+    <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">Safely checked in! ✅</div>
+    <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
+      Hi ${esc(b.parentName)} — just a quick note that <strong style="color:${BRAND.ink};">${esc(b.childFirst)}</strong>
+      has arrived at Cherwell Chipmunks and been checked in.
+    </p>
+    ${infoCard(
+      BRAND.leaf,
+      '🕘 Check-in details',
+      `Checked in at <strong>${esc(b.time)}</strong> by <strong>${esc(b.checkedInBy)}</strong>.`
+    )}
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:18px 0 0;">
+      Have a lovely day — see you at pick-up!<br>
+      <strong style="color:${BRAND.ink};">The Chipmunks team at ${esc(site.orgName)}</strong>
+    </p>`;
+  return { subject, html: shell(subject, `${b.childFirst} checked in at ${b.time}`, body) };
+}
+
+/** Sent the moment an Activity Champion checks a child out at pick-up. */
+export function checkoutEmail(b: {
+  childFirst: string;
+  parentName: string;
+  time: string;
+  collectedBy: string;
+}): { subject: string; html: string } {
+  const subject = `🏠 ${b.childFirst} has gone home from Chipmunks`;
+  const body = `
+    <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">Home time! 🏠</div>
+    <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
+      Hi ${esc(b.parentName)} — <strong style="color:${BRAND.ink};">${esc(b.childFirst)}</strong> has left
+      Cherwell Chipmunks for the day.
+    </p>
+    ${infoCard(
+      BRAND.pink,
+      '🕘 Collection details',
+      `Collected at <strong>${esc(b.time)}</strong> by <strong>${esc(b.collectedBy)}</strong>.`
+    )}
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:18px 0 0;">
+      If this doesn’t look right, please call us straight away on
+      <strong style="color:${BRAND.ink};">${esc(site.contact.phone)}</strong>.
+    </p>
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:14px 0 0;">
+      <strong style="color:${BRAND.ink};">The Chipmunks team at ${esc(site.orgName)}</strong>
+    </p>`;
+  return {
+    subject,
+    html: shell(subject, `${b.childFirst} collected at ${b.time} by ${b.collectedBy}`, body),
+  };
+}
+
 export function cancellationEmail(b: BookingEmailData): { subject: string; html: string } {
   const subject = `Your Chipmunks booking ${b.ref} has been cancelled`;
   const body = `

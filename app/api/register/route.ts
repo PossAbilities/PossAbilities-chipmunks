@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     session
       ? db
           .prepare(
-            `SELECT bd.id AS booking_day_id, bd.checked_in_at, bd.checked_in_by, bd.checked_out_at,
+            `SELECT bd.id AS booking_day_id, bd.checked_in_at, bd.checked_in_by, bd.checked_out_at, bd.checked_out_by,
                     b.id AS booking_id, b.ref, b.child_first, b.child_last, b.child_dob, b.photo,
                     b.parent_name, b.parent_phone, b.kin_name, b.kin_phone, b.kin_relationship,
                     b.employee_name, b.employee_relation,

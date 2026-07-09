@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
                 b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs,
                 b.employee_name, b.employee_relation,
                 ${collectorsSql} AS collectors,
-                bd.checked_in_at, bd.checked_in_by, bd.checked_out_at
+                bd.checked_in_at, bd.checked_in_by, bd.checked_out_at, bd.checked_out_by
          FROM booking_days bd
          JOIN bookings b ON b.id = bd.booking_id
          JOIN sessions s ON s.id = bd.session_id

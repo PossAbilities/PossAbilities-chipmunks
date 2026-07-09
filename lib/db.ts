@@ -91,8 +91,9 @@ function migrate(db: Database.Database) {
       booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
       session_id INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
       checked_in_at TEXT,
-      checked_in_by TEXT NOT NULL DEFAULT '',
+      checked_in_by TEXT NOT NULL DEFAULT '',      -- Activity Champion who checked them in
       checked_out_at TEXT,
+      checked_out_by TEXT NOT NULL DEFAULT '',     -- name of the person who collected them
       UNIQUE (booking_id, session_id)
     );
 
@@ -127,6 +128,7 @@ function migrate(db: Database.Database) {
     `ALTER TABLE bookings ADD COLUMN payment_method TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN payment_date TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN payment_note TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE booking_days ADD COLUMN checked_out_by TEXT NOT NULL DEFAULT ''`,
   ];
   for (const sql of columnMigrations) {
     try {

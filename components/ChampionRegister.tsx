@@ -7,6 +7,7 @@ interface Child {
   checked_in_at: string | null;
   checked_in_by: string;
   checked_out_at: string | null;
+  checked_out_by: string;
   booking_id: number;
   ref: string;
   child_first: string;
@@ -56,6 +57,8 @@ export default function ChampionRegister({
   const [loading, setLoading] = useState(true);
   const [openCard, setOpenCard] = useState<number | null>(null);
   const [filter, setFilter] = useState<'all' | 'expected' | 'here'>('all');
+  const [checkoutFor, setCheckoutFor] = useState<number | null>(null);
+  const [otherName, setOtherName] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -70,12 +73,24 @@ export default function ChampionRegister({
     load();
   }, [load]);
 
-  async function act(bookingDayId: number, action: 'in' | 'out' | 'undo-in' | 'undo-out') {
+  async function act(bookingDayId: number, action: 'in' | 'undo-in' | 'undo-out') {
     await fetch('/api/checkin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bookingDayId, action }),
     });
+    load();
+  }
+
+  async function confirmCheckout(bookingDayId: number, collectedBy: string) {
+    if (!collectedBy.trim()) return;
+    await fetch('/api/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingDayId, action: 'out', collectedBy: collectedBy.trim() }),
+    });
+    setCheckoutFor(null);
+    setOtherName('');
     load();
   }
 
@@ -220,7 +235,7 @@ export default function ChampionRegister({
                     </div>
                     <div className="text-xs text-ink/50 font-bold mt-0.5">
                       {here && `Checked in ${timeOf(c.checked_in_at)}${c.checked_in_by ? ` by ${c.checked_in_by}` : ''}`}
-                      {gone && `Went home ${timeOf(c.checked_out_at)}`}
+                      {gone && `Went home ${timeOf(c.checked_out_at)}${c.checked_out_by ? ` with ${c.checked_out_by}` : ''}`}
                       {!c.checked_in_at && `Due today · ${c.ref}`}
                       <span className="ml-1 text-pink/60">{open ? '▴ less' : '▾ details'}</span>
                     </div>
@@ -234,9 +249,9 @@ export default function ChampionRegister({
                       ✓ Check in
                     </button>
                   )}
-                  {here && (
+                  {here && checkoutFor !== c.booking_day_id && (
                     <button
-                      onClick={() => act(c.booking_day_id, 'out')}
+                      onClick={() => setCheckoutFor(c.booking_day_id)}
                       className="btn bg-indigo text-white px-5 py-3 text-base font-extrabold shrink-0 hover:bg-indigo-deep active:scale-95"
                     >
                       Home time
@@ -251,6 +266,61 @@ export default function ChampionRegister({
                     </button>
                   )}
                 </div>
+
+                {here && checkoutFor === c.booking_day_id && (
+                  <div className="border-t border-ink/5 bg-indigo/5 p-4 animate-pop-in">
+                    <div className="text-sm font-bold text-ink mb-2">Who’s collecting {c.child_first}?</div>
+                    {c.collectors.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {c.collectors.map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => confirmCheckout(c.booking_day_id, p.name)}
+                            className="flex items-center gap-2 rounded-xl bg-white border-2 border-ink/10 hover:border-teal px-3 py-2 transition-colors"
+                          >
+                            {p.photo ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={`/api/uploads/${p.photo}`}
+                                alt={p.name}
+                                className="h-9 w-9 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-pink/10 text-sm font-bold text-pink">
+                                {p.name[0]}
+                              </div>
+                            )}
+                            <span className="text-sm font-bold text-ink">{p.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        className="field-input flex-1 min-w-[160px] !py-2"
+                        placeholder="Someone else's name"
+                        value={otherName}
+                        onChange={(e) => setOtherName(e.target.value)}
+                      />
+                      <button
+                        onClick={() => confirmCheckout(c.booking_day_id, otherName)}
+                        disabled={!otherName.trim()}
+                        className="btn-small bg-indigo text-white font-bold rounded-full disabled:opacity-40"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => {
+                          setCheckoutFor(null);
+                          setOtherName('');
+                        }}
+                        className="btn-small text-ink/50 font-bold"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {open && (
                   <div className="border-t border-ink/5 bg-mist/50 p-4 grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm animate-pop-in">
