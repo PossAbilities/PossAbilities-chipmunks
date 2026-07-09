@@ -135,9 +135,9 @@ export default function AdminDashboard() {
   async function setPaid(
     id: number,
     paid: boolean,
-    details?: { method: string; date: string; note: string }
+    details?: { method: string; date: string; note: string; sendReceipt?: boolean }
   ) {
-    const sendReceipt = paid && confirm('Marked as paid ✓\n\nSend the family a payment-received email too?');
+    const sendReceipt = paid && !!details?.sendReceipt;
     const res = await fetch(`/api/bookings/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -364,7 +364,11 @@ function FragmentRow({
   toggle: () => void;
   chip: (s: string) => string;
   setStatus: (id: number, s: 'confirmed' | 'cancelled') => void;
-  setPaid: (id: number, paid: boolean, details?: { method: string; date: string; note: string }) => void;
+  setPaid: (
+    id: number,
+    paid: boolean,
+    details?: { method: string; date: string; note: string; sendReceipt?: boolean }
+  ) => void;
   sendPaymentEmail: (id: number) => void;
 }) {
   const [payingOpen, setPayingOpen] = useState(false);
@@ -583,13 +587,14 @@ function PaymentForm({
   onConfirm,
   onCancel,
 }: {
-  onConfirm: (details: { method: string; date: string; note: string }) => void;
+  onConfirm: (details: { method: string; date: string; note: string; sendReceipt: boolean }) => void;
   onCancel: () => void;
 }) {
   const today = new Date().toISOString().slice(0, 10);
   const [method, setMethod] = useState(PAYMENT_METHODS[0]);
   const [date, setDate] = useState(today);
   const [note, setNote] = useState('');
+  const [sendReceipt, setSendReceipt] = useState(true);
   return (
     <div className="rounded-xl border-2 border-teal/30 bg-teal/5 p-3 flex flex-wrap items-end gap-3">
       <div>
@@ -624,10 +629,19 @@ function PaymentForm({
           onChange={(e) => setNote(e.target.value)}
         />
       </div>
+      <label className="flex items-center gap-2 text-xs font-bold text-ink/70 pb-1.5 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={sendReceipt}
+          onChange={(e) => setSendReceipt(e.target.checked)}
+          className="h-4 w-4 rounded border-ink/30 accent-teal"
+        />
+        Email a receipt to the family
+      </label>
       <button
         type="button"
         className="btn-small bg-teal text-white font-bold rounded-full"
-        onClick={() => onConfirm({ method, date, note })}
+        onClick={() => onConfirm({ method, date, note, sendReceipt })}
       >
         ✓ Confirm payment
       </button>
