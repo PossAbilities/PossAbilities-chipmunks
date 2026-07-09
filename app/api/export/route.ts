@@ -28,15 +28,21 @@ export async function GET(req: NextRequest) {
   let header: string[];
   let rows: unknown[][];
 
+  const collectorsSql = `(SELECT GROUP_CONCAT(
+       name || CASE WHEN relationship <> '' THEN ' (' || relationship || ')' ELSE '' END, '; '
+     ) FROM booking_collectors WHERE booking_id = b.id)`;
+
   if (mode === 'days') {
     const data = db
       .prepare(
-        `SELECT s.date, s.label, b.ref, b.status, b.child_first, b.child_last, b.child_dob,
+        `SELECT s.date, s.label, b.ref, b.status, b.paid, b.payment_method, b.payment_date,
+                b.child_first, b.child_last, b.child_dob,
                 b.parent_name, b.parent_email, b.parent_phone,
                 b.kin_name, b.kin_phone, b.kin_relationship,
                 b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs,
                 b.employee_name, b.employee_relation,
-                b.pickup_names, bd.checked_in_at, bd.checked_in_by, bd.checked_out_at
+                ${collectorsSql} AS collectors,
+                bd.checked_in_at, bd.checked_in_by, bd.checked_out_at
          FROM booking_days bd
          JOIN bookings b ON b.id = bd.booking_id
          JOIN sessions s ON s.id = bd.session_id
@@ -49,14 +55,15 @@ export async function GET(req: NextRequest) {
   } else {
     const data = db
       .prepare(
-        `SELECT b.ref, b.status, b.paid, b.paid_at, b.created_at, b.child_first, b.child_last, b.child_dob,
-                b.child_address,
+        `SELECT b.ref, b.status, b.paid, b.payment_method, b.payment_date, b.payment_note, b.created_at,
+                b.child_first, b.child_last, b.child_dob, b.child_address,
                 b.parent_name, b.parent_email, b.parent_phone, b.parent_phone2, b.relationship,
                 b.kin_name, b.kin_phone, b.kin_relationship, b.kin_address,
                 b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs, b.gp_details,
                 b.employee_name, b.employee_id, b.employee_relation, b.employee_email,
                 b.signed_name, b.signed_at,
-                b.pickup_names, b.consent_photo, b.anything_else,
+                ${collectorsSql} AS collectors,
+                b.consent_photo, b.anything_else,
                 (SELECT GROUP_CONCAT(s.date, '; ') FROM booking_days bd
                  JOIN sessions s ON s.id = bd.session_id
                  WHERE bd.booking_id = b.id) AS booked_days

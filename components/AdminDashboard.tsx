@@ -44,10 +44,13 @@ interface Booking {
   employee_relation: string;
   paid: number;
   paid_at: string | null;
-  pickup_names: string;
+  payment_method: string;
+  payment_date: string;
+  payment_note: string;
   consent_photo: number;
   anything_else: string;
   days: Day[];
+  collectors: { id: number; name: string; relationship: string; photo: string }[];
 }
 interface SessionRow {
   id: number;
@@ -128,13 +131,28 @@ export default function AdminDashboard() {
     reload();
   }
 
-  async function setPaid(id: number, paid: boolean) {
+  async function setPaid(
+    id: number,
+    paid: boolean,
+    details?: { method: string; date: string; note: string }
+  ) {
     const sendReceipt = paid && confirm('Marked as paid ✓\n\nSend the family a payment-received email too?');
-    await fetch(`/api/bookings/${id}`, {
+    const res = await fetch(`/api/bookings/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paid, sendReceipt }),
+      body: JSON.stringify({
+        paid,
+        sendReceipt,
+        paymentMethod: details?.method,
+        paymentDate: details?.date,
+        paymentNote: details?.note,
+      }),
     });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setNotice(body.error || 'Could not update payment.');
+      return;
+    }
     setNotice(paid ? `Booking marked as paid${sendReceipt ? ' — receipt email sent.' : '.'}` : 'Booking marked as unpaid.');
     reload();
   }
@@ -345,9 +363,10 @@ function FragmentRow({
   toggle: () => void;
   chip: (s: string) => string;
   setStatus: (id: number, s: 'confirmed' | 'cancelled') => void;
-  setPaid: (id: number, paid: boolean) => void;
+  setPaid: (id: number, paid: boolean, details?: { method: string; date: string; note: string }) => void;
   sendPaymentEmail: (id: number) => void;
 }) {
+  const [payingOpen, setPayingOpen] = useState(false);
   return (
     <>
       <tr className={`cursor-pointer hover:bg-mist/60 ${b.status === 'cancelled' ? 'opacity-50' : ''}`} onClick={toggle}>
@@ -369,7 +388,7 @@ function FragmentRow({
         <td>
           <span
             className={`rounded-full px-2.5 py-1 text-xs font-extrabold ${b.paid ? 'bg-teal/15 text-teal' : 'bg-pink/10 text-pink'}`}
-            title={b.paid_at || ''}
+            title={b.paid ? `Paid via ${b.payment_method || '—'}${b.payment_date ? ' on ' + b.payment_date : ''}` : ''}
           >
             {b.paid ? 'PAID' : 'UNPAID'}
           </span>
@@ -379,14 +398,78 @@ function FragmentRow({
       {open && (
         <tr>
           <td colSpan={7} className="!bg-mist/50">
+            <div className="p-4 pb-0">
+              <div className="rounded-2xl border-2 border-pink/30 bg-pink/5 p-4">
+                <div className="font-display font-extrabold text-pink flex items-center gap-2 mb-3">
+                  📞 Emergency contacts & collection
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40">
+                      Parent / guardian
+                    </div>
+                    <div className="font-bold text-ink">{b.parent_name}</div>
+                    <div className="text-ink/70">
+                      {b.parent_phone}
+                      {b.parent_phone2 ? ` · ${b.parent_phone2}` : ''}
+                    </div>
+                    <div className="text-ink/70">{b.parent_email}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40">Next of kin</div>
+                    {b.kin_name ? (
+                      <>
+                        <div className="font-bold text-ink">
+                          {b.kin_name} {b.kin_relationship && `(${b.kin_relationship})`}
+                        </div>
+                        <div className="text-ink/70">{b.kin_phone}</div>
+                        {b.kin_address && <div className="text-ink/70">{b.kin_address}</div>}
+                      </>
+                    ) : (
+                      <div className="text-ink/30">— none given —</div>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40 mb-2">
+                    Who can collect {b.child_first}
+                  </div>
+                  {b.collectors.length === 0 ? (
+                    <div className="text-sm text-plum font-bold">— none listed —</div>
+                  ) : (
+                    <div className="flex flex-wrap gap-3">
+                      {b.collectors.map((c) => (
+                        <div
+                          key={c.id}
+                          className="flex items-center gap-2 rounded-xl bg-white border border-pink/20 px-3 py-2"
+                        >
+                          {c.photo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={`/api/uploads/${c.photo}`}
+                              alt={c.name}
+                              className="h-10 w-10 rounded-lg object-cover border border-ink/10"
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink/10 text-sm font-bold text-pink">
+                              {c.name[0]}
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-sm font-bold text-ink">{c.name}</div>
+                            {c.relationship && <div className="text-xs text-ink/50">{c.relationship}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 p-4 text-sm">
               <Detail label="Date of birth" value={b.child_dob} />
               <Detail label="Child's address" value={b.child_address} />
               <Detail label="Relationship" value={b.relationship} />
-              <Detail label="Other contact number" value={b.parent_phone2} />
-              <Detail label="Next of kin" value={[b.kin_name, b.kin_phone, b.kin_relationship].filter(Boolean).join(' · ')} />
-              <Detail label="Next of kin address" value={b.kin_address} />
-              <Detail label="Allowed to collect" value={b.pickup_names} />
               <Detail label="Medical conditions" value={b.medical_conditions} />
               <Detail label="Allergies" value={b.allergies} />
               <Detail label="Dietary" value={b.dietary} />
@@ -399,7 +482,14 @@ function FragmentRow({
               />
               <Detail label="Payroll / Element Suite ID" value={b.employee_id} />
               <Detail label="Employee email" value={b.employee_email} />
-              <Detail label="Payment" value={b.paid ? `Paid ${b.paid_at ? '· ' + b.paid_at.slice(0, 10) : ''}` : 'Not yet paid'} />
+              <Detail
+                label="Payment"
+                value={
+                  b.paid
+                    ? `Paid via ${b.payment_method || '—'}${b.payment_date ? ' on ' + b.payment_date : ''}${b.payment_note ? ' — ' + b.payment_note : ''}`
+                    : 'Not yet paid'
+                }
+              />
               <Detail label="Photo consent" value={b.consent_photo ? 'Yes' : 'No'} />
               <Detail label="Anything else" value={b.anything_else} />
               <Detail label="Booked" value={b.created_at} />
@@ -420,22 +510,35 @@ function FragmentRow({
                 )}
               </div>
             </div>
+            {!b.paid && payingOpen && (
+              <div className="px-4 pb-3">
+                <PaymentForm
+                  onConfirm={(d) => {
+                    setPaid(b.id, true, d);
+                    setPayingOpen(false);
+                  }}
+                  onCancel={() => setPayingOpen(false)}
+                />
+              </div>
+            )}
             <div className="px-4 pb-4 flex flex-wrap gap-2">
               {!b.paid ? (
-                <>
-                  <button
-                    className="btn-small bg-teal/15 text-teal font-bold rounded-full"
-                    onClick={() => setPaid(b.id, true)}
-                  >
-                    ✓ Mark as paid
-                  </button>
-                  <button
-                    className="btn-small bg-pink/10 text-pink font-bold rounded-full"
-                    onClick={() => sendPaymentEmail(b.id)}
-                  >
-                    💷 Send payment email
-                  </button>
-                </>
+                !payingOpen && (
+                  <>
+                    <button
+                      className="btn-small bg-teal/15 text-teal font-bold rounded-full"
+                      onClick={() => setPayingOpen(true)}
+                    >
+                      ✓ Mark as paid
+                    </button>
+                    <button
+                      className="btn-small bg-pink/10 text-pink font-bold rounded-full"
+                      onClick={() => sendPaymentEmail(b.id)}
+                    >
+                      💷 Send payment email
+                    </button>
+                  </>
+                )
               ) : (
                 <button
                   className="btn-small bg-ink/5 text-ink/60 font-bold rounded-full"
@@ -461,6 +564,67 @@ function FragmentRow({
         </tr>
       )}
     </>
+  );
+}
+
+const PAYMENT_METHODS = ['Card', 'Cash', 'Bank transfer', 'Salary sacrifice', 'Other'];
+
+function PaymentForm({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: (details: { method: string; date: string; note: string }) => void;
+  onCancel: () => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [method, setMethod] = useState(PAYMENT_METHODS[0]);
+  const [date, setDate] = useState(today);
+  const [note, setNote] = useState('');
+  return (
+    <div className="rounded-xl border-2 border-teal/30 bg-teal/5 p-3 flex flex-wrap items-end gap-3">
+      <div>
+        <label className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40">Paid via</label>
+        <select
+          className="field-input !py-1.5 !px-3 !rounded-lg !w-auto"
+          value={method}
+          onChange={(e) => setMethod(e.target.value)}
+        >
+          {PAYMENT_METHODS.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40">Date paid</label>
+        <input
+          type="date"
+          className="field-input !py-1.5 !px-3 !rounded-lg !w-auto"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+      </div>
+      <div className="flex-1 min-w-[160px]">
+        <label className="text-[11px] font-extrabold uppercase tracking-wide text-ink/40">Note (optional)</label>
+        <input
+          className="field-input !py-1.5 !px-3 !rounded-lg"
+          placeholder="e.g. reference number"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </div>
+      <button
+        type="button"
+        className="btn-small bg-teal text-white font-bold rounded-full"
+        onClick={() => onConfirm({ method, date, note })}
+      >
+        ✓ Confirm payment
+      </button>
+      <button type="button" className="btn-small text-ink/50 font-bold" onClick={onCancel}>
+        Cancel
+      </button>
+    </div>
   );
 }
 

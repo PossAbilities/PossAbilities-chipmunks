@@ -222,7 +222,9 @@ export function paymentEmail(b: BookingEmailData): { subject: string; html: stri
 }
 
 /** Sent (optionally) when the admin team marks a booking as paid. */
-export function receiptEmail(b: BookingEmailData): { subject: string; html: string } {
+export function receiptEmail(
+  b: BookingEmailData & { paymentMethod?: string; paymentDate?: string }
+): { subject: string; html: string } {
   const subject = `✅ Payment received — ${b.childFirst} is all set for Chipmunks! ${b.ref}`;
   const body = `
     <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">All paid — thank you! 🎉</div>
@@ -232,6 +234,15 @@ export function receiptEmail(b: BookingEmailData): { subject: string; html: stri
       <strong style="color:${BRAND.ink};">${esc(b.childFirst)}</strong>’s place is fully secured.
       All that’s left is the fun bit.
     </p>
+    ${
+      b.paymentMethod
+        ? infoCard(
+            BRAND.leaf,
+            '💷 Payment recorded',
+            `Paid via <strong>${esc(b.paymentMethod)}</strong>${b.paymentDate ? ` on <strong>${esc(b.paymentDate)}</strong>` : ''}.`
+          )
+        : ''
+    }
     <div style="color:${BRAND.ink};font-size:16px;font-weight:800;padding-top:18px;">${esc(b.childFirst)}’s day${b.days.length > 1 ? 's' : ''} with us</div>
     ${daysTable(b.days)}
     <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:14px 0 0;">

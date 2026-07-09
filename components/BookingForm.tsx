@@ -12,6 +12,17 @@ interface SessionOption {
   spacesLeft: number;
 }
 
+interface CollectorEntry {
+  id: string;
+  name: string;
+  relationship: string;
+  photoPreview: string;
+}
+
+function newCollector(): CollectorEntry {
+  return { id: crypto.randomUUID(), name: '', relationship: '', photoPreview: '' };
+}
+
 const STEPS = ['Days', 'Your child', 'Grown-ups', 'Health', 'Confirm'] as const;
 
 function formatDate(iso: string) {
@@ -53,6 +64,10 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
   const [signedName, setSignedName] = useState('');
   const [hasSignature, setHasSignature] = useState(false);
 
+  const [collectors, setCollectors] = useState<CollectorEntry[]>([newCollector()]);
+  const collectorBlobs = useRef<Map<string, Blob>>(new Map());
+  const collectorInputs = useRef<Map<string, HTMLInputElement>>(new Map());
+
   const [f, setF] = useState({
     child_first: '',
     child_last: '',
@@ -72,7 +87,6 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     kin_phone: '',
     kin_relationship: '',
     kin_address: '',
-    pickup_names: '',
     medical_conditions: '',
     allergies: '',
     dietary: '',
@@ -103,6 +117,30 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
     setPhotoPreview(URL.createObjectURL(blob));
   }
 
+  function addCollector() {
+    setCollectors((prev) => [...prev, newCollector()]);
+  }
+  function removeCollector(id: string) {
+    collectorBlobs.current.delete(id);
+    collectorInputs.current.delete(id);
+    setCollectors((prev) => prev.filter((c) => c.id !== id));
+  }
+  function updateCollector(id: string, field: 'name' | 'relationship', value: string) {
+    setCollectors((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
+  }
+  async function onCollectorPhotoChange(id: string, file?: File) {
+    if (!file) return;
+    const blob = await shrinkPhoto(file);
+    collectorBlobs.current.set(id, blob);
+    setCollectors((prev) => prev.map((c) => (c.id === id ? { ...c, photoPreview: URL.createObjectURL(blob) } : c)));
+  }
+  function clearCollectorPhoto(id: string) {
+    collectorBlobs.current.delete(id);
+    const input = collectorInputs.current.get(id);
+    if (input) input.value = '';
+    setCollectors((prev) => prev.map((c) => (c.id === id ? { ...c, photoPreview: '' } : c)));
+  }
+
   function validateStep(current: number): string {
     switch (current) {
       case 0:
@@ -128,6 +166,8 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
         if (!f.employee_id.trim())
           return 'Please enter the employee’s payroll or Element Suite ID so we can verify the booking.';
         if (!f.employee_relation) return 'Please choose the child’s relationship to the PossAbilities employee.';
+        if (!collectors.some((c) => c.name.trim()))
+          return 'Please tell us who is allowed to collect your child — at least one person.';
         return '';
       case 3:
         return '';
@@ -168,6 +208,16 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
       fd.set('signed_name', (signedName || f.parent_name).trim());
       if (photoBlob.current) fd.set('photo', photoBlob.current, 'child.jpg');
       if (signatureBlob.current) fd.set('signature', signatureBlob.current, 'signature.png');
+
+      const namedCollectors = collectors.filter((c) => c.name.trim());
+      fd.set(
+        'collectors_meta',
+        JSON.stringify(namedCollectors.map((c) => ({ name: c.name.trim(), relationship: c.relationship.trim() })))
+      );
+      namedCollectors.forEach((c, i) => {
+        const blob = collectorBlobs.current.get(c.id);
+        if (blob) fd.set(`collector_photo_${i}`, blob, `collector_${i}.jpg`);
+      });
       const res = await fetch('/api/bookings', { method: 'POST', body: fd });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || 'Something went wrong — please try again.');
@@ -521,16 +571,94 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               </div>
             </div>
 
-            <div>
-              <label className="field-label" htmlFor="pickup_names">Who is allowed to collect your child?</label>
-              <input
-                id="pickup_names"
-                className={inputCls}
-                placeholder="Names of adults who may pick them up"
-                value={f.pickup_names}
-                onChange={set('pickup_names')}
-              />
-              <p className="field-hint">We’ll only release children to the people named here.</p>
+            <div className="rounded-2xl bg-mist border border-ink/8 p-5 space-y-4">
+              <div>
+                <div className="font-bold text-ink">Who can collect {f.child_first || 'your child'}? *</div>
+                <p className="text-sm text-ink/55 mt-1">
+                  Add everyone who might drop off or collect. A photo helps our Activity Champions check who’s
+                  picking up — especially handy if it’s someone new to us. We’ll only release{' '}
+                  {f.child_first || 'your child'} to the people listed here.
+                </p>
+              </div>
+
+              {collectors.map((c, idx) => (
+                <div key={c.id} className="rounded-xl border border-ink/10 bg-white p-4">
+                  <div className="flex items-start gap-4">
+                    {c.photoPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.photoPreview}
+                        alt=""
+                        className="h-16 w-16 shrink-0 rounded-xl object-cover border-2 border-teal/40"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-2xl">
+                        📸
+                      </div>
+                    )}
+                    <div className="flex-1 grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="field-label">Name {idx === 0 && '*'}</label>
+                        <input
+                          className={inputCls}
+                          value={c.name}
+                          onChange={(e) => updateCollector(c.id, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">Relationship</label>
+                        <input
+                          className={inputCls}
+                          placeholder="e.g. Mum, Grandad, Childminder"
+                          value={c.relationship}
+                          onChange={(e) => updateCollector(c.id, 'relationship', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      className="btn-secondary btn-small"
+                      onClick={() => collectorInputs.current.get(c.id)?.click()}
+                    >
+                      {c.photoPreview ? 'Change photo' : '📷 Add a photo'}
+                    </button>
+                    {c.photoPreview && (
+                      <button
+                        type="button"
+                        className="btn-small text-ink/50 hover:text-plum font-bold"
+                        onClick={() => clearCollectorPhoto(c.id)}
+                      >
+                        Remove photo
+                      </button>
+                    )}
+                    {collectors.length > 1 && (
+                      <button
+                        type="button"
+                        className="ml-auto btn-small text-plum/70 hover:text-plum font-bold"
+                        onClick={() => removeCollector(c.id)}
+                      >
+                        Remove person
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={(el) => {
+                      if (el) collectorInputs.current.set(c.id, el);
+                    }}
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    className="hidden"
+                    onChange={(e) => onCollectorPhotoChange(c.id, e.target.files?.[0])}
+                  />
+                </div>
+              ))}
+
+              <button type="button" className="btn-secondary btn-small" onClick={addCollector}>
+                + Add another person
+              </button>
             </div>
           </div>
         )}
@@ -596,6 +724,10 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
               </div>
               <div className="text-ink/55">
                 PossAbilities employee: {f.employee_name} · ID {f.employee_id} ({f.employee_relation || '—'})
+              </div>
+              <div className="text-ink/55">
+                Collection: {collectors.filter((c) => c.name.trim()).length} person
+                {collectors.filter((c) => c.name.trim()).length === 1 ? '' : 's'} named
               </div>
               <div className="mt-2 rounded-xl bg-pink/10 border border-pink/25 px-3 py-2 text-xs font-bold text-pink-deep">
                 Payment is in advance and we’re unable to refund cancellations. We’ll send payment details with

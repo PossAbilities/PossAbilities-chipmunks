@@ -9,8 +9,10 @@ export const dynamic = 'force-dynamic';
 
 /**
  * Update a booking (admin):
- *   { status: 'confirmed' | 'cancelled' }          — cancel/restore (emails the family on cancel)
- *   { paid: boolean, sendReceipt?: boolean }       — record payment, optionally email a receipt
+ *   { status: 'confirmed' | 'cancelled' }                     — cancel/restore (emails the family on cancel)
+ *   { paid: true, paymentMethod, paymentDate, paymentNote?,
+ *     sendReceipt? }                                           — record how/when payment was received
+ *   { paid: false }                                            — clear payment record
  */
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   if (!canAccess(requestRole(req), 'admin')) {
@@ -32,14 +34,24 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   };
 
   if (typeof body.paid === 'boolean') {
-    db.prepare('UPDATE bookings SET paid = ?, paid_at = ? WHERE id = ?').run(
-      body.paid ? 1 : 0,
-      body.paid ? new Date().toISOString() : null,
-      booking.id
-    );
-    if (body.paid && body.sendReceipt) {
-      const { subject, html } = receiptEmail(emailData);
-      await sendEmail({ to: booking.parent_email, subject, html, kind: 'receipt', bookingId: booking.id });
+    if (body.paid) {
+      const method = String(body.paymentMethod || '').trim();
+      const date = String(body.paymentDate || '').trim() || new Date().toISOString().slice(0, 10);
+      const note = String(body.paymentNote || '').trim();
+      if (!method) {
+        return NextResponse.json({ error: 'Please choose how the payment was made.' }, { status: 400 });
+      }
+      db.prepare(
+        'UPDATE bookings SET paid = 1, paid_at = ?, payment_method = ?, payment_date = ?, payment_note = ? WHERE id = ?'
+      ).run(new Date().toISOString(), method, date, note, booking.id);
+      if (body.sendReceipt) {
+        const { subject, html } = receiptEmail({ ...emailData, paymentMethod: method, paymentDate: date });
+        await sendEmail({ to: booking.parent_email, subject, html, kind: 'receipt', bookingId: booking.id });
+      }
+    } else {
+      db.prepare(
+        "UPDATE bookings SET paid = 0, paid_at = NULL, payment_method = '', payment_date = '', payment_note = '' WHERE id = ?"
+      ).run(booking.id);
     }
     return NextResponse.json({ ok: true });
   }

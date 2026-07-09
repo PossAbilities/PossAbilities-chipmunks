@@ -25,8 +25,8 @@ interface Child {
   dietary: string;
   medication: string;
   support_needs: string;
-  pickup_names: string;
   anything_else: string;
+  collectors: { id: number; name: string; relationship: string; photo: string }[];
 }
 
 function todayLocalISO() {
@@ -256,7 +256,44 @@ export default function ChampionRegister({
                   <div className="border-t border-ink/5 bg-mist/50 p-4 grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm animate-pop-in">
                     <Info label="Parent / guardian" value={`${c.parent_name} · ${c.parent_phone}`} strong />
                     <Info label="Next of kin" value={[c.kin_name, c.kin_phone, c.kin_relationship].filter(Boolean).join(' · ')} />
-                    <Info label="Allowed to collect" value={c.pickup_names} strong />
+                    <div className="sm:col-span-2">
+                      <div className="text-[10px] font-extrabold uppercase tracking-wide text-ink/40 mb-1.5">
+                        Who can collect {c.child_first} — check photo ID at pickup
+                      </div>
+                      {c.collectors.length === 0 ? (
+                        <div className="text-sm font-bold text-plum">
+                          No one listed — check with the office before releasing this child.
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {c.collectors.map((p) => (
+                            <div
+                              key={p.id}
+                              className="flex items-center gap-2 rounded-xl bg-white border border-ink/10 px-2.5 py-1.5"
+                            >
+                              {p.photo ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={`/api/uploads/${p.photo}`}
+                                  alt={p.name}
+                                  className="h-10 w-10 rounded-lg object-cover border border-ink/10"
+                                />
+                              ) : (
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink/10 text-sm font-bold text-pink">
+                                  {p.name[0]}
+                                </div>
+                              )}
+                              <div>
+                                <div className="text-sm font-bold text-ink leading-tight">{p.name}</div>
+                                {p.relationship && (
+                                  <div className="text-[11px] text-ink/50 leading-tight">{p.relationship}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <Info
                       label="PossAbilities employee"
                       value={c.employee_name ? `${c.employee_name} (${c.employee_relation || '—'})` : ''}

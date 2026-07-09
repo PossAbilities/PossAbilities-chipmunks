@@ -78,6 +78,14 @@ function migrate(db: Database.Database) {
       anything_else TEXT NOT NULL DEFAULT ''
     );
 
+    CREATE TABLE IF NOT EXISTS booking_collectors (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      relationship TEXT NOT NULL DEFAULT '',
+      photo TEXT NOT NULL DEFAULT ''        -- filename in uploads dir, same as child photos
+    );
+
     CREATE TABLE IF NOT EXISTS booking_days (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
@@ -116,6 +124,9 @@ function migrate(db: Database.Database) {
     `ALTER TABLE bookings ADD COLUMN signature TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN signed_name TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE bookings ADD COLUMN signed_at TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN payment_method TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN payment_date TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE bookings ADD COLUMN payment_note TEXT NOT NULL DEFAULT ''`,
   ];
   for (const sql of columnMigrations) {
     try {

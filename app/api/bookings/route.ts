@@ -16,6 +16,17 @@ const PHOTO_TYPES: Record<string, string> = {
   'image/webp': '.webp',
 };
 
+/** Validate + save an optional photo (child or collector). Empty file → no-op. */
+async function saveOptionalPhoto(file: FormDataEntryValue | null): Promise<{ name: string; error?: string }> {
+  if (!(file instanceof File) || file.size === 0) return { name: '' };
+  if (file.size > MAX_PHOTO_BYTES) return { name: '', error: 'Photo is too large (max 8 MB).' };
+  const ext = PHOTO_TYPES[file.type];
+  if (!ext) return { name: '', error: 'Photo must be a JPEG, PNG or WebP image.' };
+  const name = crypto.randomUUID() + ext;
+  fs.writeFileSync(path.join(UPLOADS_DIR, name), Buffer.from(await file.arrayBuffer()));
+  return { name };
+}
+
 /** Create a booking (public, multipart/form-data). */
 export async function POST(req: NextRequest) {
   const db = getDb();
@@ -96,18 +107,33 @@ export async function POST(req: NextRequest) {
   }
 
   // Photo upload (optional but encouraged — shown on the check-in register)
-  let photoName = '';
-  const photo = form.get('photo');
-  if (photo instanceof File && photo.size > 0) {
-    if (photo.size > MAX_PHOTO_BYTES) {
-      return NextResponse.json({ error: 'Photo is too large (max 8 MB).' }, { status: 400 });
-    }
-    const ext = PHOTO_TYPES[photo.type];
-    if (!ext) {
-      return NextResponse.json({ error: 'Photo must be a JPEG, PNG or WebP image.' }, { status: 400 });
-    }
-    photoName = crypto.randomUUID() + ext;
-    fs.writeFileSync(path.join(UPLOADS_DIR, photoName), Buffer.from(await photo.arrayBuffer()));
+  const childPhoto = await saveOptionalPhoto(form.get('photo'));
+  if (childPhoto.error) return NextResponse.json({ error: childPhoto.error }, { status: 400 });
+  const photoName = childPhoto.name;
+
+  // Who can collect the child — at least one named person is required.
+  // Each may optionally have a photo so Activity Champions can check ID at pickup.
+  let collectorsMeta: { name: string; relationship: string }[];
+  try {
+    const parsed = JSON.parse(str('collectors_meta') || '[]');
+    if (!Array.isArray(parsed)) throw new Error();
+    collectorsMeta = parsed
+      .map((c) => ({ name: String(c?.name ?? '').trim(), relationship: String(c?.relationship ?? '').trim() }))
+      .filter((c) => c.name);
+  } catch {
+    collectorsMeta = [];
+  }
+  if (collectorsMeta.length === 0) {
+    return NextResponse.json(
+      { error: 'Please tell us who is allowed to collect your child — at least one person.' },
+      { status: 400 }
+    );
+  }
+  const collectorsToInsert: { name: string; relationship: string; photo: string }[] = [];
+  for (let i = 0; i < collectorsMeta.length; i++) {
+    const result = await saveOptionalPhoto(form.get(`collector_photo_${i}`));
+    if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
+    collectorsToInsert.push({ ...collectorsMeta[i], photo: result.name });
   }
 
   // Signature (required) — drawn on the form, stored privately like photos
@@ -136,8 +162,8 @@ export async function POST(req: NextRequest) {
           medical_conditions, allergies, dietary, medication, support_needs, gp_details,
           employee_name, employee_id, employee_relation, employee_email,
           signature, signed_name, signed_at,
-          pickup_names, consent_photo, consent_medical, consent_activities, anything_else
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+          consent_photo, consent_medical, consent_activities, anything_else
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       )
       .run(
         ref,
@@ -168,7 +194,6 @@ export async function POST(req: NextRequest) {
         signatureName,
         str('signed_name'),
         signedAt,
-        str('pickup_names'),
         str('consent_photo') === 'yes' ? 1 : 0,
         1,
         1,
@@ -177,6 +202,10 @@ export async function POST(req: NextRequest) {
     const bookingId = Number(res.lastInsertRowid);
     const addDay = db.prepare('INSERT INTO booking_days (booking_id, session_id) VALUES (?, ?)');
     for (const id of sessionIds) addDay.run(bookingId, id);
+    const addCollector = db.prepare(
+      'INSERT INTO booking_collectors (booking_id, name, relationship, photo) VALUES (?, ?, ?, ?)'
+    );
+    for (const c of collectorsToInsert) addCollector.run(bookingId, c.name, c.relationship, c.photo);
     return bookingId;
   });
   const bookingId = insert();
@@ -213,7 +242,20 @@ export async function GET(req: NextRequest) {
     list.push(d);
     byBooking.set(d.booking_id, list);
   }
+  const collectors = db
+    .prepare(`SELECT id, booking_id, name, relationship, photo FROM booking_collectors ORDER BY id ASC`)
+    .all() as { booking_id: number }[];
+  const collectorsByBooking = new Map<number, unknown[]>();
+  for (const c of collectors) {
+    const list = collectorsByBooking.get(c.booking_id) || [];
+    list.push(c);
+    collectorsByBooking.set(c.booking_id, list);
+  }
   return NextResponse.json({
-    bookings: bookings.map((b) => ({ ...b, days: byBooking.get(b.id as number) || [] })),
+    bookings: bookings.map((b) => ({
+      ...b,
+      days: byBooking.get(b.id as number) || [],
+      collectors: collectorsByBooking.get(b.id as number) || [],
+    })),
   });
 }

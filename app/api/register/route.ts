@@ -22,22 +22,45 @@ export async function GET(req: NextRequest) {
     | { id: number; label: string }
     | undefined;
 
-  const children = session
-    ? db
-        .prepare(
-          `SELECT bd.id AS booking_day_id, bd.checked_in_at, bd.checked_in_by, bd.checked_out_at,
-                  b.id AS booking_id, b.ref, b.child_first, b.child_last, b.child_dob, b.photo,
-                  b.parent_name, b.parent_phone, b.kin_name, b.kin_phone, b.kin_relationship,
-                  b.employee_name, b.employee_relation,
-                  b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs,
-                  b.pickup_names, b.consent_photo, b.anything_else
-           FROM booking_days bd
-           JOIN bookings b ON b.id = bd.booking_id
-           WHERE bd.session_id = ? AND b.status = 'confirmed'
-           ORDER BY b.child_first, b.child_last`
-        )
-        .all(session.id)
-    : [];
+  const children = (
+    session
+      ? db
+          .prepare(
+            `SELECT bd.id AS booking_day_id, bd.checked_in_at, bd.checked_in_by, bd.checked_out_at,
+                    b.id AS booking_id, b.ref, b.child_first, b.child_last, b.child_dob, b.photo,
+                    b.parent_name, b.parent_phone, b.kin_name, b.kin_phone, b.kin_relationship,
+                    b.employee_name, b.employee_relation,
+                    b.medical_conditions, b.allergies, b.dietary, b.medication, b.support_needs,
+                    b.consent_photo, b.anything_else
+             FROM booking_days bd
+             JOIN bookings b ON b.id = bd.booking_id
+             WHERE bd.session_id = ? AND b.status = 'confirmed'
+             ORDER BY b.child_first, b.child_last`
+          )
+          .all(session.id)
+      : []
+  ) as { booking_id: number }[];
 
-  return NextResponse.json({ date, session: session || null, children });
+  const collectorsByBooking = new Map<number, unknown[]>();
+  if (children.length) {
+    const ids = [...new Set(children.map((c) => c.booking_id))];
+    const placeholders = ids.map(() => '?').join(',');
+    const collectors = db
+      .prepare(
+        `SELECT id, booking_id, name, relationship, photo FROM booking_collectors
+         WHERE booking_id IN (${placeholders}) ORDER BY id ASC`
+      )
+      .all(...ids) as { booking_id: number }[];
+    for (const c of collectors) {
+      const list = collectorsByBooking.get(c.booking_id) || [];
+      list.push(c);
+      collectorsByBooking.set(c.booking_id, list);
+    }
+  }
+
+  return NextResponse.json({
+    date,
+    session: session || null,
+    children: children.map((c) => ({ ...c, collectors: collectorsByBooking.get(c.booking_id) || [] })),
+  });
 }
