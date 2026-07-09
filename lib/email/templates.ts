@@ -278,6 +278,30 @@ export function checkinEmail(b: {
   return { subject, html: shell(subject, `${b.childFirst} checked in at ${b.time}`, body) };
 }
 
+/** Sent when a named admin (Admin → Team) requests a sign-in link. */
+export function magicLinkEmail(b: { name: string; link: string }): { subject: string; html: string } {
+  const subject = `🔑 Your Chipmunks Admin sign-in link`;
+  const body = `
+    <div style="color:${BRAND.ink};font-size:22px;font-weight:800;">Hi ${esc(b.name)}, here’s your sign-in link</div>
+    <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
+      Tap the button below to sign in to the Chipmunks Admin area. This link works once and
+      expires in <strong style="color:${BRAND.ink};">15 minutes</strong>.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0;">
+      <tr><td style="background-color:${BRAND.pink};border-radius:999px;">
+        <a href="${esc(b.link)}" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;">Sign in to Admin →</a>
+      </td></tr>
+    </table>
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:14px 0 0;">
+      If the button doesn’t work, copy and paste this link into your browser:<br>
+      <a href="${esc(b.link)}" style="color:${BRAND.acorn};word-break:break-all;">${esc(b.link)}</a>
+    </p>
+    <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:18px 0 0;">
+      Didn’t request this? You can safely ignore this email — no one can sign in without clicking the link above.
+    </p>`;
+  return { subject, html: shell(subject, `Sign in to Chipmunks Admin — link expires in 15 minutes`, body) };
+}
+
 /** Sent the moment an Activity Champion checks a child out at pick-up. */
 export function checkoutEmail(b: {
   childFirst: string;

@@ -16,6 +16,7 @@ export function getDb(): Database.Database {
   db.pragma('foreign_keys = ON');
   migrate(db);
   seed(db);
+  seedAdmins(db);
   return db;
 }
 
@@ -111,6 +112,30 @@ function migrate(db: Database.Database) {
       error TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS admins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,                  -- signs in via emailed magic link, not a password
+      name TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS magic_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      used_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS champions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      pin TEXT NOT NULL UNIQUE,                    -- each Activity Champion's own sign-in PIN
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   // Lightweight migrations for databases created before these columns
@@ -163,6 +188,16 @@ function seed(db: Database.Database) {
     ['2026-08-14', 'Grand Finale Friday', ''],
   ];
   for (const [date, label, notes] of days) insert.run(date, label, 20, notes);
+}
+
+/** Seed the named admins who sign in with a magic link instead of the shared password.
+ *  More can be added or removed any time in Admin → Team. */
+function seedAdmins(db: Database.Database) {
+  const count = db.prepare('SELECT COUNT(*) AS n FROM admins').get() as { n: number };
+  if (count.n > 0) return;
+  const insert = db.prepare('INSERT INTO admins (email, name) VALUES (?, ?)');
+  insert.run('samie.howlett@possabilities.org.uk', 'Samie Howlett');
+  insert.run('angela.clarke@possabilities.org.uk', 'Angela Clarke');
 }
 
 export interface SessionRow {

@@ -72,8 +72,21 @@ interface EmailRow {
   created_at: string;
   ref: string | null;
 }
+interface AdminRow {
+  id: number;
+  email: string;
+  name: string;
+  created_at: string;
+}
+interface ChampionRow {
+  id: number;
+  name: string;
+  pin: string;
+  active: number;
+  created_at: string;
+}
 
-const TABS = ['Bookings', 'Days', 'Emails'] as const;
+const TABS = ['Bookings', 'Days', 'Emails', 'Team'] as const;
 
 function fmt(date: string) {
   return new Date(date + 'T12:00:00Z').toLocaleDateString('en-GB', {
@@ -89,20 +102,26 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [emails, setEmails] = useState<EmailRow[]>([]);
+  const [admins, setAdmins] = useState<AdminRow[]>([]);
+  const [champions, setChampions] = useState<ChampionRow[]>([]);
   const [search, setSearch] = useState('');
   const [dayFilter, setDayFilter] = useState('');
   const [open, setOpen] = useState<number | null>(null);
   const [notice, setNotice] = useState('');
 
   const reload = useCallback(async () => {
-    const [b, s, e] = await Promise.all([
+    const [b, s, e, a, c] = await Promise.all([
       fetch('/api/bookings').then((r) => r.json()),
       fetch('/api/sessions?all=1').then((r) => r.json()),
       fetch('/api/emails').then((r) => r.json()),
+      fetch('/api/admins').then((r) => r.json()),
+      fetch('/api/champions').then((r) => r.json()),
     ]);
     setBookings(b.bookings || []);
     setSessions(s.sessions || []);
     setEmails(e.emails || []);
+    setAdmins(a.admins || []);
+    setChampions(c.champions || []);
   }, []);
 
   useEffect(() => {
@@ -345,6 +364,9 @@ export default function AdminDashboard() {
             </table>
           </div>
         )}
+
+        {/* ── Team ── */}
+        {tab === 'Team' && <TeamTab admins={admins} champions={champions} reload={reload} setNotice={setNotice} />}
       </div>
     </main>
   );
@@ -801,5 +823,239 @@ function DaysTab({ sessions, reload }: { sessions: SessionRow[]; reload: () => v
         </table>
       </div>
     </>
+  );
+}
+
+function TeamTab({
+  admins,
+  champions,
+  reload,
+  setNotice,
+}: {
+  admins: AdminRow[];
+  champions: ChampionRow[];
+  reload: () => void;
+  setNotice: (s: string) => void;
+}) {
+  return (
+    <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <AdminsCard admins={admins} reload={reload} setNotice={setNotice} />
+      <ChampionsCard champions={champions} reload={reload} setNotice={setNotice} />
+    </div>
+  );
+}
+
+function AdminsCard({
+  admins,
+  reload,
+  setNotice,
+}: {
+  admins: AdminRow[];
+  reload: () => void;
+  setNotice: (s: string) => void;
+}) {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [err, setErr] = useState('');
+
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    setErr('');
+    const res = await fetch('/api/admins', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setErr(body.error || 'Could not add admin.');
+      return;
+    }
+    setNotice(`${name} can now sign in with a magic link sent to ${email}.`);
+    setEmail('');
+    setName('');
+    reload();
+  }
+
+  async function remove(id: number, label: string) {
+    if (!confirm(`Remove ${label} as an admin?`)) return;
+    const res = await fetch(`/api/admins/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setNotice(body.error || 'Could not remove admin.');
+      return;
+    }
+    reload();
+  }
+
+  return (
+    <div className="rounded-2xl bg-white border border-ink/5 shadow-soft p-5">
+      <div className="font-display font-extrabold text-indigo text-lg mb-1">👤 Admins</div>
+      <p className="text-sm text-ink/55 mb-4">
+        Named admins sign in with a link emailed to them — no password to share or forget.
+      </p>
+      <form onSubmit={add} className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="flex-1 min-w-[160px]">
+          <label className="field-label" htmlFor="admin-name">Name</label>
+          <input
+            id="admin-name"
+            required
+            className="field-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Samie Howlett"
+          />
+        </div>
+        <div className="flex-1 min-w-[200px]">
+          <label className="field-label" htmlFor="admin-email">Email</label>
+          <input
+            id="admin-email"
+            type="email"
+            required
+            className="field-input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@possabilities.org.uk"
+          />
+        </div>
+        <button className="btn-primary !py-3 whitespace-nowrap">+ Add admin</button>
+      </form>
+      {err && <div className="mb-3 text-sm font-bold text-plum">{err}</div>}
+      <div className="space-y-2">
+        {admins.map((a) => (
+          <div key={a.id} className="flex items-center justify-between rounded-xl bg-mist/60 px-4 py-2.5">
+            <div>
+              <div className="font-bold text-ink">{a.name}</div>
+              <div className="text-xs text-ink/55">{a.email}</div>
+            </div>
+            <button onClick={() => remove(a.id, a.name)} className="text-plum/70 hover:text-plum font-bold text-sm">
+              Remove
+            </button>
+          </div>
+        ))}
+        {admins.length === 0 && <div className="text-sm text-ink/40 py-4 text-center">No admins yet.</div>}
+      </div>
+    </div>
+  );
+}
+
+function ChampionsCard({
+  champions,
+  reload,
+  setNotice,
+}: {
+  champions: ChampionRow[];
+  reload: () => void;
+  setNotice: (s: string) => void;
+}) {
+  const [name, setName] = useState('');
+  const [pin, setPin] = useState('');
+  const [err, setErr] = useState('');
+
+  function randomPin() {
+    setPin(String(Math.floor(1000 + Math.random() * 9000)));
+  }
+
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    setErr('');
+    const res = await fetch('/api/champions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, pin }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setErr(body.error || 'Could not add champion.');
+      return;
+    }
+    setNotice(`${name} added — they can now sign in to the register with their own PIN.`);
+    setName('');
+    setPin('');
+    reload();
+  }
+
+  async function toggle(c: ChampionRow) {
+    await fetch(`/api/champions/${c.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !c.active }),
+    });
+    reload();
+  }
+
+  async function remove(id: number, label: string) {
+    if (!confirm(`Remove ${label} as an Activity Champion?`)) return;
+    await fetch(`/api/champions/${id}`, { method: 'DELETE' });
+    reload();
+  }
+
+  return (
+    <div className="rounded-2xl bg-white border border-ink/5 shadow-soft p-5">
+      <div className="font-display font-extrabold text-indigo text-lg mb-1">🐿️ Activity Champions</div>
+      <p className="text-sm text-ink/55 mb-4">
+        Give each champion their own PIN so the register always knows exactly who checked a child in or out.
+      </p>
+      <form onSubmit={add} className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="flex-1 min-w-[160px]">
+          <label className="field-label" htmlFor="champ-name">Name</label>
+          <input
+            id="champ-name"
+            required
+            className="field-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Jamie"
+          />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="champ-pin">PIN</label>
+          <div className="flex gap-2">
+            <input
+              id="champ-pin"
+              required
+              className="field-input !w-28"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              placeholder="4+ digits"
+            />
+            <button type="button" onClick={randomPin} className="btn-secondary btn-small whitespace-nowrap" title="Generate a random PIN">
+              🎲
+            </button>
+          </div>
+        </div>
+        <button className="btn-primary !py-3 whitespace-nowrap">+ Add champion</button>
+      </form>
+      {err && <div className="mb-3 text-sm font-bold text-plum">{err}</div>}
+      <div className="space-y-2">
+        {champions.map((c) => (
+          <div
+            key={c.id}
+            className={`flex items-center justify-between rounded-xl bg-mist/60 px-4 py-2.5 ${c.active ? '' : 'opacity-50'}`}
+          >
+            <div>
+              <div className="font-bold text-ink">{c.name}</div>
+              <PasswordReveal value={c.pin} />
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => toggle(c)}
+                className={`rounded-full px-3 py-1 text-xs font-extrabold ${c.active ? 'bg-teal/15 text-teal' : 'bg-ink/10 text-ink/50'}`}
+              >
+                {c.active ? 'Active' : 'Disabled'}
+              </button>
+              <button onClick={() => remove(c.id, c.name)} className="text-plum/70 hover:text-plum font-bold text-sm">
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
+        {champions.length === 0 && (
+          <div className="text-sm text-ink/40 py-4 text-center">
+            No champions added yet — the shared team PIN still works as a fallback.
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

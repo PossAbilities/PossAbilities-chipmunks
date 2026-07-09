@@ -11,9 +11,14 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const store = await cookies();
   const session = verifyToken(store.get(COOKIE_NAME)?.value);
+  const { error } = await searchParams;
 
   if (!session || session.role !== 'admin') {
     return (
@@ -21,6 +26,7 @@ export default async function AdminPage() {
         role="admin"
         title="Chipmunks Admin"
         subtitle="Bookings, dates, emails and exports"
+        initialError={error || ''}
       />
     );
   }

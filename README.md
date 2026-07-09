@@ -8,7 +8,7 @@ A complete website and booking system for **The Chipmunks**, the school-holiday 
 |---|---|---|
 | **Landing page** | `/` | Families — the club's activities (farm, immersive room, games), a typical day, live upcoming dates with availability, kit list and FAQs |
 | **Booking** | `/book` | Parents/carers — 5-step form: choose days → child details (with photo, taken straight from the phone camera) → contacts & next of kin → medical info → consents |
-| **Admin area** | `/admin` | Staff — manage bookings (search, filter, cancel/restore), manage club days & capacity, CSV exports, view every email sent, trigger reminders |
+| **Admin area** | `/admin` | Staff — manage bookings (search, filter, cancel/restore), manage club days & capacity, CSV exports, view every email sent, trigger reminders, manage the team (Admin → Team) |
 | **Champion register** | `/champion` | Activity Champions — today's expected children **with their photos**, medical flags, one-tap check-in / home-time, who's allowed to collect |
 
 ### Emails (fully designed HTML)
@@ -87,6 +87,13 @@ The site follows **PossAbilities Brand Manual 1.1**: pink `#E43092`, indigo `#36
 - **Fonts**: loaded in `app/layout.tsx` (Quicksand for headings + Nunito for body, the closest Google Fonts to the brand's rounded type).
 - **All copy, prices, contact details, activities, FAQs**: `content/site.ts`.
 - **Club dates & capacity**: Admin area → Days.
+
+## Team sign-in
+
+**Admin → Team** manages who has access, without sharing one password around:
+
+- **Admins** sign in with a magic link emailed to them (15 minutes, single use) instead of a shared password. Add or remove named admins any time in Admin → Team — no code changes needed. The `ADMIN_PASSWORD` from `.env` remains as a fallback/master login in case someone can't get their email.
+- **Activity Champions** can each have their own PIN, so the check-in register always records exactly who signed a child in or out by name. The shared `CHAMPION_PIN` remains as a fallback for anyone not yet given their own PIN.
 
 ## Data & safeguarding notes
 

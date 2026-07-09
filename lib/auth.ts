@@ -3,8 +3,11 @@ import type { NextRequest } from 'next/server';
 
 /**
  * Lightweight signed-cookie auth with two roles:
- *  - admin:    full admin area (password: ADMIN_PASSWORD)
- *  - champion: check-in register only (PIN: CHAMPION_PIN)
+ *  - admin:    full admin area — named admins (Admin → Team) sign in with an
+ *              emailed magic link; ADMIN_PASSWORD remains as a fallback/master login.
+ *  - champion: check-in register only — each Activity Champion has their own PIN
+ *              (Admin → Team), so the register knows exactly who signed a child
+ *              in or out; CHAMPION_PIN remains as a shared fallback PIN.
  * Admins can access champion pages too.
  *
  * Set ADMIN_PASSWORD, CHAMPION_PIN and SESSION_SECRET in production —
