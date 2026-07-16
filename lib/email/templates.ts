@@ -8,7 +8,7 @@ import { formatDateLong } from '@/lib/db';
  * official guidelines arrive.
  */
 /** PossAbilities Brand Manual 1.1 palette — mirrors app/globals.css */
-const BRAND = {
+export const BRAND = {
   purple: '#362B74', // brand indigo (headers, headings)
   purpleDeep: '#251D52',
   pink: '#E43092',
@@ -20,11 +20,16 @@ const BRAND = {
   ink: '#2B2453',
 };
 
-function esc(s: string): string {
+export function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function shell(title: string, preheader: string, body: string): string {
+export function shell(
+  title: string,
+  preheader: string,
+  body: string,
+  footerNote = 'You’re receiving this email because you booked a place at the Cherwell Chipmunks Day Camp.'
+): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,7 +70,7 @@ function shell(title: string, preheader: string, body: string): string {
       <a href="mailto:${esc(site.contact.email)}" style="color:${BRAND.sunshine};text-decoration:none;">${esc(site.contact.email)}</a>
       &nbsp;·&nbsp; ${esc(site.contact.phone)}
     </div>
-    <div style="color:#8F89A8;font-size:12px;padding-top:12px;">You’re receiving this email because you booked a place at the Cherwell Chipmunks Day Camp.</div>
+    <div style="color:#8F89A8;font-size:12px;padding-top:12px;">${esc(footerNote)}</div>
   </td></tr>
 
 </table>
@@ -89,7 +94,7 @@ function daysTable(days: { date: string; note?: string }[]): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#E9F6F6;border-radius:16px;margin:18px 0;">${rows}</table>`;
 }
 
-function infoCard(colour: string, title: string, inner: string): string {
+export function infoCard(colour: string, title: string, inner: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;">
   <tr><td style="border-left:5px solid ${colour};background-color:#F6FBFB;border-radius:12px;padding:16px 20px;">
     <div style="color:${BRAND.ink};font-size:15px;font-weight:800;padding-bottom:6px;">${title}</div>

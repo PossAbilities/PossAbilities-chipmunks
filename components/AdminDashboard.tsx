@@ -86,7 +86,30 @@ interface ChampionRow {
   created_at: string;
 }
 
-const TABS = ['Bookings', 'Days', 'Emails', 'Team'] as const;
+const TABS = ['Bookings', 'Days', 'Emails', 'Team', 'Staff Emails'] as const;
+
+const STAFF_CAMPAIGN = [
+  {
+    key: 'teaser',
+    label: '1. Save the date',
+    blurb: 'Sent weeks ahead, before booking opens — builds excitement with the dates and a sneak peek.',
+  },
+  {
+    key: 'booking-open',
+    label: '2. Booking is open',
+    blurb: 'The main event — full details, the deal, and a step-by-step on how to book.',
+  },
+  {
+    key: 'filling-up',
+    label: '3. Places filling up',
+    blurb: 'Mid-campaign nudge with a parent testimonial, for anyone who hasn’t booked yet.',
+  },
+  {
+    key: 'final-call',
+    label: '4. Final call',
+    blurb: 'A short, urgent last reminder a few days before the diary fills up.',
+  },
+] as const;
 
 function fmt(date: string) {
   return new Date(date + 'T12:00:00Z').toLocaleDateString('en-GB', {
@@ -367,6 +390,9 @@ export default function AdminDashboard() {
 
         {/* ── Team ── */}
         {tab === 'Team' && <TeamTab admins={admins} champions={champions} reload={reload} setNotice={setNotice} />}
+
+        {/* ── Staff Emails ── */}
+        {tab === 'Staff Emails' && <StaffEmailsTab setNotice={setNotice} />}
       </div>
     </main>
   );
@@ -1055,6 +1081,56 @@ function ChampionsCard({
             No champions added yet — the shared team PIN still works as a fallback.
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function StaffEmailsTab({ setNotice }: { setNotice: (s: string) => void }) {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  async function copyHtml(key: string) {
+    const res = await fetch(`/api/staff-emails/${key}?format=json`);
+    if (!res.ok) {
+      setNotice('Could not load that email.');
+      return;
+    }
+    const { html } = await res.json();
+    await navigator.clipboard.writeText(html);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 2000);
+  }
+
+  return (
+    <div>
+      <div className="rounded-2xl bg-white border border-ink/5 shadow-soft p-5 mb-6">
+        <div className="font-display font-extrabold text-indigo text-lg mb-1">📣 Staff campaign emails</div>
+        <p className="text-sm text-ink/55">
+          A ready-made, branded email series to remind staff that Chipmunks is on and how to book — sent to the
+          all-staff distribution list from your usual email tool (Outlook, Mailchimp, etc.), since that list lives
+          outside this booking system. Preview each one, or copy the HTML straight into your email tool.
+        </p>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-5">
+        {STAFF_CAMPAIGN.map((c) => (
+          <div key={c.key} className="rounded-2xl bg-white border border-ink/5 shadow-soft p-5 flex flex-col">
+            <div className="font-display font-extrabold text-ink">{c.label}</div>
+            <p className="text-sm text-ink/55 mt-1 flex-1">{c.blurb}</p>
+            <div className="flex gap-2 mt-4">
+              <a
+                href={`/api/staff-emails/${c.key}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-secondary btn-small"
+              >
+                👁 Preview
+              </a>
+              <button type="button" onClick={() => copyHtml(c.key)} className="btn-secondary btn-small">
+                {copiedKey === c.key ? '✓ Copied!' : '📋 Copy HTML'}
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
