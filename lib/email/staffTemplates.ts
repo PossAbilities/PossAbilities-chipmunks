@@ -50,6 +50,25 @@ function datesRibbon(): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;"><tr>${cells}</tr></table>`;
 }
 
+const MASCOT_ASPECT = 443 / 280; // native size of public/mascots/orla-wave-email.png
+
+/** Orla, waving hello — the same mascot from the website, flattened to a
+ *  static image (animated CSS doesn't survive most email clients). */
+function mascotWave(origin: string, size = 110): string {
+  const height = Math.round(size * MASCOT_ASPECT);
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:2px 0 14px;">
+    <tr><td align="center">
+      <img
+        src="${origin}/mascots/orla-wave-email.png"
+        width="${size}"
+        height="${height}"
+        alt="Orla, the Chipmunks mascot, waving hello"
+        style="display:block;width:${size}px;height:${height}px;"
+      >
+    </td></tr>
+  </table>`;
+}
+
 function activityStrip(keys: string[]): string {
   const chosen = site.activities.filter((a) => keys.includes(a.title));
   const cells = chosen
@@ -70,8 +89,10 @@ export interface StaffCampaignOpts {
 /** 1. Save-the-date teaser — sent weeks before booking opens, just to build buzz. */
 export function teaserEmail(opts: StaffCampaignOpts): { subject: string; html: string } {
   const subject = `🐿️ ${site.clubName} is coming back this summer!`;
+  const origin = new URL(opts.bookingUrl).origin;
   const body = `
     <div style="color:${BRAND.ink};font-size:24px;font-weight:800;">Psst… ${esc(site.strapline)} 🌞</div>
+    ${mascotWave(origin, 130)}
     <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
       ${esc(site.clubName)} is back for another summer of animals, adventures and (very serious) bake-offs —
       and it's one of our favourite staff perks. If you've got children or grandchildren aged
@@ -106,8 +127,10 @@ export function teaserEmail(opts: StaffCampaignOpts): { subject: string; html: s
 /** 2. Booking-open — the main campaign email: full details + how to book. */
 export function bookingOpenEmail(opts: StaffCampaignOpts): { subject: string; html: string } {
   const subject = `🎉 Booking is open for ${site.clubName} 2026!`;
+  const origin = new URL(opts.bookingUrl).origin;
   const body = `
     <div style="color:${BRAND.ink};font-size:24px;font-weight:800;">The wait is over — booking’s open! 🎉</div>
+    ${mascotWave(origin, 130)}
     <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
       ${esc(site.intro)}
     </p>
@@ -154,6 +177,7 @@ export function bookingOpenEmail(opts: StaffCampaignOpts): { subject: string; ht
 /** 3. Mid-campaign nudge — social proof + urgency, for staff who haven't booked yet. */
 export function fillingUpEmail(opts: StaffCampaignOpts): { subject: string; html: string } {
   const subject = `⏰ ${site.clubName} spaces are going fast!`;
+  const origin = new URL(opts.bookingUrl).origin;
   const testimonial = site.testimonials[0];
   const body = `
     <div style="color:${BRAND.ink};font-size:24px;font-weight:800;">Don’t let the summer sneak up on you! ⏰</div>
@@ -178,6 +202,7 @@ export function fillingUpEmail(opts: StaffCampaignOpts): { subject: string; html
       `£${site.session.pricePerDay} per day (lunch included) · ${esc(site.session.ageRange)} · drop off ${esc(site.session.dropOffFrom)}, pick up ${esc(site.session.endTime)} · ${esc(site.eligibility)}`
     )}
 
+    ${mascotWave(origin, 90)}
     ${ctaButton('Grab your place before it’s gone →', opts.bookingUrl)}
 
     <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:22px 0 0;">
@@ -190,6 +215,7 @@ export function fillingUpEmail(opts: StaffCampaignOpts): { subject: string; html
 /** 4. Final call — sent a few days before booking effectively closes. */
 export function finalCallEmail(opts: StaffCampaignOpts): { subject: string; html: string } {
   const subject = `🚨 Last call for ${site.clubName} — book before it's too late!`;
+  const origin = new URL(opts.bookingUrl).origin;
   const body = `
     <div style="color:${BRAND.ink};font-size:24px;font-weight:800;">This is it — last call! 🚨</div>
     <p style="color:#5B5675;font-size:15px;line-height:1.7;margin:14px 0 0;">
@@ -200,6 +226,7 @@ export function finalCallEmail(opts: StaffCampaignOpts): { subject: string; html
     ${datesRibbon()}
     ${dealChecklist()}
 
+    ${mascotWave(origin, 90)}
     ${ctaButton('Book now — before it’s full →', opts.bookingUrl)}
 
     <p style="color:#5B5675;font-size:14px;line-height:1.7;margin:22px 0 0;">
