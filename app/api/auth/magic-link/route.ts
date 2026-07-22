@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { getDb } from '@/lib/db';
 import { magicLinkEmail } from '@/lib/email/templates';
 import { sendEmail } from '@/lib/email/send';
+import { publicOrigin } from '@/lib/site-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
   db.prepare('INSERT INTO magic_links (email, token, expires_at) VALUES (?, ?, ?)').run(email, token, expiresAt);
 
-  const link = `${req.nextUrl.origin}/api/auth/verify?token=${token}`;
+  const link = `${publicOrigin(req)}/api/auth/verify?token=${token}`;
   const { subject, html } = magicLinkEmail({ name: admin.name || email, link });
   const sent = await sendEmail({ to: email, subject, html, kind: 'magic-link' });
 

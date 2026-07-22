@@ -41,6 +41,9 @@ Copy `.env.example` to `.env` and set:
 | `CRON_SECRET` | Protects the reminder endpoint |
 | `RESEND_API_KEY` / `EMAIL_FROM` | **Recommended** — send email via [Resend](https://resend.com), just an API key |
 | `SMTP_HOST/PORT/USER/PASS/FROM` | Alternative to Resend — used only if `RESEND_API_KEY` isn't set |
+| `APP_URL` | The site's own public address, e.g. `https://chipmunks.possabilities.org.uk`. **Strongly recommended when self-hosting** behind a reverse proxy, tunnel, or router port-forward (see note below) |
+
+> **Self-hosting behind a proxy/tunnel?** Set `APP_URL` to your real public address. Admin sign-in links and the staff campaign emails need to build a URL that works from *outside* your network — without `APP_URL`, the app has to guess its own address from the incoming request, which behind some proxy setups comes out as an internal address (like `http://localhost:3000`) that nobody outside your machine can open. If invited admins say their sign-in link "doesn't work" or "goes nowhere", this is the first thing to check.
 
 ## Daily reminder emails
 

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { makeToken, COOKIE_NAME } from '@/lib/auth';
+import { publicOrigin } from '@/lib/site-url';
 
 export const dynamic = 'force-dynamic';
 
 /** Public: consume a magic-link token and sign the matching admin in. */
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token') || '';
-  const fail = (reason: string) => NextResponse.redirect(new URL(`/admin?error=${reason}`, req.url));
+  const origin = publicOrigin(req);
+  const fail = (reason: string) => NextResponse.redirect(`${origin}/admin?error=${reason}`);
   if (!token) return fail('invalid');
 
   const db = getDb();
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   db.prepare('UPDATE magic_links SET used_at = ? WHERE id = ?').run(new Date().toISOString(), row.id);
 
-  const res = NextResponse.redirect(new URL('/admin', req.url));
+  const res = NextResponse.redirect(`${origin}/admin`);
   res.cookies.set(COOKIE_NAME, makeToken('admin', admin.name || row.email), {
     httpOnly: true,
     sameSite: 'lax',

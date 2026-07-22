@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requestRole, canAccess } from '@/lib/auth';
 import { teaserEmail, bookingOpenEmail, fillingUpEmail, finalCallEmail } from '@/lib/email/staffTemplates';
+import { publicOrigin } from '@/lib/site-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
   const build = CAMPAIGN[key as CampaignKey];
   if (!build) return NextResponse.json({ error: 'Unknown campaign email' }, { status: 404 });
 
-  const bookingUrl = `${req.nextUrl.origin}/book`;
+  const bookingUrl = `${publicOrigin(req)}/book`;
   const { subject, html } = build({ bookingUrl });
 
   if (req.nextUrl.searchParams.get('format') === 'json') {
