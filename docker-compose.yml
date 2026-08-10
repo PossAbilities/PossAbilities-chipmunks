@@ -1,0 +1,36 @@
+# Chipmunks — durable deployment for Ryan's Cloud.
+#
+# Why this exists: the app was previously started by hand with `docker run`, so a
+# reboot / Docker restart / OOM killed it and nothing brought it back (that's the
+# recurring "Bad Gateway"). This file fixes that:
+#   - restart: unless-stopped  -> comes back automatically after a kill or reboot
+#   - env_file: .env           -> all config (APP_URL, Resend, secrets, Hub) from one place
+#   - external network         -> joins the shared tunnel network so Cloudflare reaches it
+#   - external volume          -> reuses the existing SQLite DB + uploads (never recreated)
+#
+# Deploy / update:  docker compose up -d --build
+# Status:           docker compose ps
+services:
+  chipmunks:
+    build: .
+    image: ryan-cloud-chipmunks:latest
+    container_name: ryan-chipmunks
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - data:/var/data
+    networks:
+      - hub
+    expose:
+      - "3000"
+
+volumes:
+  data:
+    name: ryan-cloud-chipmunks_chipmunks_data
+    external: true
+
+networks:
+  hub:
+    name: ryan-cloud-network_default
+    external: true
