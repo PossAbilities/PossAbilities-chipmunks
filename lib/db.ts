@@ -16,6 +16,7 @@ export function getDb(): Database.Database {
   db.pragma('foreign_keys = ON');
   migrate(db);
   seed(db);
+  seedHalfTerm(db);
   seedAdmins(db);
   return db;
 }
@@ -186,6 +187,25 @@ function seed(db: Database.Database) {
     ['2026-08-12', 'Wild Art Wednesday', ''],
     ['2026-08-13', 'Bake-Off Thursday', ''],
     ['2026-08-14', 'Grand Finale Friday', ''],
+  ];
+  for (const [date, label, notes] of days) insert.run(date, label, 20, notes);
+}
+
+/** Add the October half-term week (Mon 26 – Fri 30 Oct 2026) if it isn't
+ *  already in the calendar. Uses INSERT OR IGNORE so, unlike seed() above,
+ *  it's safe to run against an existing database that already has bookings
+ *  in it — it only adds dates that aren't already there, and never touches
+ *  ones an admin has already added or edited by hand. */
+function seedHalfTerm(db: Database.Database) {
+  const insert = db.prepare(
+    'INSERT OR IGNORE INTO sessions (date, label, capacity, notes) VALUES (?, ?, ?, ?)'
+  );
+  const days: [string, string, string][] = [
+    ['2026-10-26', 'Animal Antics Monday', ''],
+    ['2026-10-27', 'Treasure Hunt Tuesday', ''],
+    ['2026-10-28', 'Bake-Off Wednesday', ''],
+    ['2026-10-29', 'Wild Art Thursday', ''],
+    ['2026-10-30', 'Spooktacular Friday', 'Fancy dress welcome — nothing scary, we promise! 🎃'],
   ];
   for (const [date, label, notes] of days) insert.run(date, label, 20, notes);
 }
