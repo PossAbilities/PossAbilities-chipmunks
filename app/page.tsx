@@ -78,7 +78,7 @@ export default function HomePage() {
             <div>
               <Reveal>
                 <div className="flex flex-wrap gap-3">
-                  <span className="sticker border-teal/50 text-indigo -rotate-2">☀️ 3–7 & 10–14 August</span>
+                  <span className="sticker border-teal/50 text-indigo -rotate-2">🍂 26–30 October</span>
                   <span className="sticker border-pink/40 text-pink rotate-1">Ages {site.session.ageRange}</span>
                   <span className="sticker border-indigo/20 text-indigo -rotate-1">📍 The Cherwell Centre</span>
                 </div>
@@ -181,7 +181,7 @@ export default function HomePage() {
           </div>
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-5 text-center">
             {[
-              { end: 10, suffix: ' days', label: 'of summer day camp across two August weeks' },
+              { end: 5, suffix: ' days', label: 'of day camp across October half-term' },
               { end: 15, prefix: '£', suffix: ' a day', label: 'with lunch included — pay in advance' },
               { end: 20, suffix: ' places', label: 'a day — first come, first served' },
               { end: 8, suffix: '+', label: 'years old — this camp is for the big kids' },
@@ -291,7 +291,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <Reveal>
               <Kicker className="border-indigo/20 text-indigo rotate-1">🎟️ GRAB A TICKET</Kicker>
-              <h2 className="mt-5 text-4xl sm:text-5xl font-bold text-indigo text-center">Summer 2026 dates</h2>
+              <h2 className="mt-5 text-4xl sm:text-5xl font-bold text-indigo text-center">October half-term 2026 dates</h2>
               <p className="mt-4 text-center text-lg text-ink/60">
                 £{site.session.pricePerDay} per child per day, lunch included · drop off{' '}
                 {site.session.dropOffFrom}, pick up {site.session.endTime}

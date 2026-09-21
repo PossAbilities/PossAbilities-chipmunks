@@ -7,3 +7,6 @@ data/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# internal Ryan Cloud notes (not for the app repo)
+CLAUDE.md

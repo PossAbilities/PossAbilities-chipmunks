@@ -93,19 +93,9 @@ export async function POST(req: NextRequest) {
   }
   days.sort((a, b) => a.date.localeCompare(b.date));
 
-  // Chipmunks must be 8 or over on their first booked day
-  const dob = new Date(str('child_dob') + 'T12:00:00Z');
-  if (!Number.isNaN(dob.getTime())) {
-    const firstDay = new Date(days[0].date + 'T12:00:00Z');
-    const age =
-      (firstDay.getTime() - dob.getTime()) / (365.25 * 24 * 3600 * 1000);
-    if (age < 8) {
-      return NextResponse.json(
-        { error: 'Cherwell Chipmunks must be 8 years old or over — sorry, little ones!' },
-        { status: 400 }
-      );
-    }
-  }
+  // No age gate on the booking form: the club allows exceptions (e.g. under-8s),
+  // so bookings are accepted at any age. The "8+" guidance still appears on the
+  // public landing pages/site copy. Date of birth is still collected below.
 
   // Photo upload (optional but encouraged — shown on the check-in register)
   const childPhoto = await saveOptionalPhoto(form.get('photo'));

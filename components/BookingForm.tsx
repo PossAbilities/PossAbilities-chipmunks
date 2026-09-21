@@ -148,14 +148,10 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
         return selectedDays.length ? '' : 'Pick at least one day to continue.';
       case 1: {
         if (!f.child_first.trim() || !f.child_last.trim()) return 'Please tell us your child’s name.';
-        if (!f.child_dob) return 'Please tell us your child’s date of birth — Chipmunks must be 8 or over.';
-        const firstDay = chosenDates[0];
-        if (firstDay) {
-          const age =
-            (new Date(firstDay).getTime() - new Date(f.child_dob).getTime()) /
-            (365.25 * 24 * 3600 * 1000);
-          if (age < 8) return 'Cherwell Chipmunks must be 8 years old or over — sorry, little ones!';
-        }
+        if (!f.child_dob) return 'Please tell us your child’s date of birth.';
+        // No age restriction on the booking form — the club allows exceptions,
+        // so children under 8 can be booked through. Age guidance still shows
+        // on the public landing pages.
         return '';
       }
       case 2:
@@ -390,7 +386,6 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
             <div className="sm:w-1/2">
               <label className="field-label" htmlFor="child_dob">Date of birth *</label>
               <input id="child_dob" type="date" className={inputCls} value={f.child_dob} onChange={set('child_dob')} />
-              <p className="field-hint">Chipmunks must be 8 years old or over.</p>
             </div>
             <div>
               <label className="field-label" htmlFor="child_address">Home address</label>
