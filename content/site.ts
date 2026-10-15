@@ -16,8 +16,7 @@ export const site = {
     'Bring your children or grandchildren to the Cherwell Chipmunks Day Camp for a full day of fun activities and tasks out in the open air — helping look after our animals, exploring the immersive room, treasure hunts, the famous Chipmunks bake-off, games, competitions and much more.',
 
   // Who can come — the camp is a staff perk
-  eligibility:
-    'Cherwell Chipmunks must be children or grandchildren of PossAbilities employees, and 8 years old or over.',
+  eligibility: 'Cherwell Chipmunks must be children or grandchildren of PossAbilities employees.',
 
   // Contact + venue (from the PossAbilities brand manual)
   venue: {
@@ -37,7 +36,6 @@ export const site = {
     dropOffFrom: '8:30am',
     pricePerDay: 15, // £ per child per day — includes lunch
     priceIncludes: 'lunch included',
-    ageRange: '8+',
   },
 
   /**
@@ -63,7 +61,6 @@ export const site = {
 
   // The deal — shown on the site and echoed in emails
   theDeal: [
-    'Chipmunks have to be 8 years old or over',
     '£15 per day — lunch included',
     'For children & grandchildren of PossAbilities employees',
     'Drop off 8:30am · pick up 4:00pm',
@@ -145,7 +142,7 @@ export const site = {
   faqs: [
     {
       q: 'Who can come to Cherwell Chipmunks?',
-      a: 'The day camp is a PossAbilities staff perk: Chipmunks must be children or grandchildren of PossAbilities employees, and must be 8 years old or over. Places are limited and allocated on a first come, first served basis.',
+      a: 'The day camp is a PossAbilities staff perk: Chipmunks must be children or grandchildren of PossAbilities employees. Places are limited and allocated on a first come, first served basis.',
     },
     {
       q: 'How much does it cost, and is lunch included?',

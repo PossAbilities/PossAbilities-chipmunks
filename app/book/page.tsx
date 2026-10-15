@@ -31,7 +31,7 @@ export default function BookPage() {
             lunch, drop off {site.session.dropOffFrom}, pick up {site.session.endTime}.
           </p>
           <p className="mt-2 text-sm font-bold text-pink">
-            For children & grandchildren of PossAbilities employees, aged 8+.
+            For children & grandchildren of PossAbilities employees.
           </p>
         </div>
         <div className="mt-10">

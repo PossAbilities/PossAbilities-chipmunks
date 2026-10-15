@@ -79,7 +79,7 @@ export default function HomePage() {
               <Reveal>
                 <div className="flex flex-wrap gap-3">
                   <span className="sticker border-teal/50 text-indigo -rotate-2">🍂 26–30 October</span>
-                  <span className="sticker border-pink/40 text-pink rotate-1">Ages {site.session.ageRange}</span>
+                  <span className="sticker border-pink/40 text-pink rotate-1">👨‍👩‍👧 Staff families</span>
                   <span className="sticker border-indigo/20 text-indigo -rotate-1">📍 The Cherwell Centre</span>
                 </div>
               </Reveal>
@@ -184,7 +184,7 @@ export default function HomePage() {
               { end: 5, suffix: ' days', label: 'of day camp across October half-term' },
               { end: 15, prefix: '£', suffix: ' a day', label: 'with lunch included — pay in advance' },
               { end: 20, suffix: ' places', label: 'a day — first come, first served' },
-              { end: 8, suffix: '+', label: 'years old — this camp is for the big kids' },
+              { end: 6, suffix: ' activities', label: 'from animal care to the big bake-off' },
             ].map((s, i) => (
               <Reveal key={s.label} delay={i * 80} className="zoom">
                 <div className="group rounded-blob bg-white/[0.07] border border-white/10 px-4 py-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.14] hover:-translate-y-1">

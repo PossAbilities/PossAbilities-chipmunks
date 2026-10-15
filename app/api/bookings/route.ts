@@ -93,9 +93,9 @@ export async function POST(req: NextRequest) {
   }
   days.sort((a, b) => a.date.localeCompare(b.date));
 
-  // No age gate on the booking form: the club allows exceptions (e.g. under-8s),
-  // so bookings are accepted at any age. The "8+" guidance still appears on the
-  // public landing pages/site copy. Date of birth is still collected below.
+  // No age restriction — Chipmunks is open to children and grandchildren of
+  // PossAbilities employees of any age. Date of birth is still collected
+  // below for admin/safeguarding records.
 
   // Photo upload (optional but encouraged — shown on the check-in register)
   const childPhoto = await saveOptionalPhoto(form.get('photo'));
