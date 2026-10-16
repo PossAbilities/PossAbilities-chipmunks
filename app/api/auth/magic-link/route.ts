@@ -4,6 +4,7 @@ import { getDb } from '@/lib/db';
 import { magicLinkEmail } from '@/lib/email/templates';
 import { sendEmail } from '@/lib/email/send';
 import { publicOrigin } from '@/lib/site-url';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,14 @@ const GENERIC_MESSAGE = 'If that email has admin access, we’ve sent a sign-in 
  * known admin, so this can't be used to discover who has admin access.
  */
 export async function POST(req: NextRequest) {
+  const limit = checkRateLimit(`magic-link:${clientIp(req)}`);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests — please wait a few minutes and try again.' },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfterSeconds ?? 900) } }
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const email = String(body.email || '').trim().toLowerCase();
   const generic = () => NextResponse.json({ ok: true, message: GENERIC_MESSAGE });

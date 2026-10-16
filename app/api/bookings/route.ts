@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import sharp from 'sharp';
 import { getDb, makeRef, UPLOADS_DIR } from '@/lib/db';
 import { requestRole, canAccess } from '@/lib/auth';
 import { confirmationEmail } from '@/lib/email/templates';
@@ -16,14 +17,24 @@ const PHOTO_TYPES: Record<string, string> = {
   'image/webp': '.webp',
 };
 
-/** Validate + save an optional photo (child or collector). Empty file → no-op. */
+/** Validate + save an optional photo (child or collector). Empty file → no-op.
+ *  Strips EXIF/GPS/ICC metadata (phone photos can carry the family's
+ *  location) — sharp drops metadata by default on output; .rotate() applies
+ *  the EXIF orientation first so the photo doesn't end up sideways once the
+ *  tag is gone. */
 async function saveOptionalPhoto(file: FormDataEntryValue | null): Promise<{ name: string; error?: string }> {
   if (!(file instanceof File) || file.size === 0) return { name: '' };
   if (file.size > MAX_PHOTO_BYTES) return { name: '', error: 'Photo is too large (max 8 MB).' };
   const ext = PHOTO_TYPES[file.type];
   if (!ext) return { name: '', error: 'Photo must be a JPEG, PNG or WebP image.' };
   const name = crypto.randomUUID() + ext;
-  fs.writeFileSync(path.join(UPLOADS_DIR, name), Buffer.from(await file.arrayBuffer()));
+  let processed: Buffer;
+  try {
+    processed = await sharp(Buffer.from(await file.arrayBuffer())).rotate().toBuffer();
+  } catch {
+    return { name: '', error: 'That photo could not be read — please try a different one.' };
+  }
+  fs.writeFileSync(path.join(UPLOADS_DIR, name), processed);
   return { name };
 }
 

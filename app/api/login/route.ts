@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { adminPassword, championPin, makeToken, COOKIE_NAME } from '@/lib/auth';
 import { getDb } from '@/lib/db';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,14 @@ function safeEqual(a: string, b: string): boolean {
  * CHAMPION_PIN remains as a fallback, using whatever name they type in.
  */
 export async function POST(req: NextRequest) {
+  const limit = checkRateLimit(`login:${clientIp(req)}`);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many attempts — please wait a few minutes and try again.' },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfterSeconds ?? 900) } }
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const password = String(body.password || '');
   const name = String(body.name || '').trim().slice(0, 60);

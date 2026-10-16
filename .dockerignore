@@ -1,0 +1,15 @@
+# Secrets and local data must never be copied into the image — the app
+# reads them at runtime via env_file/volumes, not from the build context.
+.env
+.env.*
+!.env.example
+
+.git
+.github
+
+node_modules
+.next
+data/
+
+*.log
+.DS_Store
