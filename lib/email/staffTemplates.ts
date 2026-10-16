@@ -101,8 +101,8 @@ export function teaserEmail(opts: StaffCampaignOpts): { subject: string; html: s
     ${mascotWave(origin, 130)}
     <p style="font-family:'Segoe UI',Arial,sans-serif;color:#5B5675;font-size:15px;line-height:1.7;mso-line-height-rule:exactly;margin:14px 0 0;">
       ${esc(site.clubName)} is back for another summer of animals, adventures and (very serious) bake-offs —
-      and it's one of our favourite staff perks. If you've got children or grandchildren aged
-      <strong style="font-family:'Segoe UI',Arial,sans-serif;color:${BRAND.ink};">${esc(site.session.ageRange)}</strong>, save the dates below.
+      and it's one of our favourite staff perks. If you've got children or grandchildren,
+      save the dates below.
     </p>
 
     ${datesRibbon()}
@@ -205,7 +205,7 @@ export function fillingUpEmail(opts: StaffCampaignOpts): { subject: string; html
     ${infoCard(
       BRAND.pink,
       '💷 The deal, in short',
-      `£${site.session.pricePerDay} per day (lunch included) · ${esc(site.session.ageRange)} · drop off ${esc(site.session.dropOffFrom)}, pick up ${esc(site.session.endTime)} · ${esc(site.eligibility)}`
+      `£${site.session.pricePerDay} per day (lunch included) · drop off ${esc(site.session.dropOffFrom)}, pick up ${esc(site.session.endTime)} · ${esc(site.eligibility)}`
     )}
 
     ${mascotWave(origin, 90)}
