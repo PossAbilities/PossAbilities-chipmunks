@@ -1,0 +1,45 @@
+name: Build Check
+
+# Safety gate: every pull request must compile before it can be merged.
+# Runs the same production build the VPS runs (`next build`, which also type-checks
+# and lints), on the same Node major version as the Docker image (Node 20). If a
+# dependency bump or code change doesn't build, this fails the PR so it can't be
+# merged and auto-deployed to the live site.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build (next build — compiles, type-checks and lints)
+        run: npm run build
+        env:
+          # The app reads/writes SQLite at request time, not during the build,
+          # but point it at a throwaway dir so nothing touches a real data path.
+          CHIPMUNKS_DATA_DIR: ${{ runner.temp }}/chipmunks-data
+          NEXT_TELEMETRY_DISABLED: '1'
