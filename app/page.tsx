@@ -9,6 +9,7 @@ import CountUp from '@/components/CountUp';
 import { PossMark } from '@/components/PossLogo';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
+import ContactEmail from '@/components/ContactEmail';
 
 export const dynamic = 'force-dynamic';
 
@@ -303,11 +304,8 @@ export default function HomePage() {
             {sessions.length === 0 ? (
               <Reveal>
                 <p className="mt-10 text-center text-ink/60 text-lg">
-                  New dates are being planned — check back soon or email{' '}
-                  <a className="text-pink font-bold underline" href={`mailto:${site.contact.email}`}>
-                    {site.contact.email}
-                  </a>
-                  .
+                  New dates are being planned — check back soon or{' '}
+                  <ContactEmail className="text-pink font-bold underline">email us</ContactEmail>.
                 </p>
               </Reveal>
             ) : (

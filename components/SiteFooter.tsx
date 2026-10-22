@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { site } from '@/content/site';
 import Wave from '@/components/Wave';
+import ContactEmail from '@/components/ContactEmail';
 
 export default function SiteFooter() {
   return (
@@ -37,9 +38,7 @@ export default function SiteFooter() {
           <div>
             <div className="font-display font-bold text-teal mb-3">Get in touch</div>
             <p className="text-white/70 text-sm leading-relaxed">
-              <a className="hover:text-white underline decoration-white/30" href={`mailto:${site.contact.email}`}>
-                {site.contact.email}
-              </a>
+              <ContactEmail className="hover:text-white underline decoration-white/30" />
               <br />
               {site.contact.phone}
               <br />
