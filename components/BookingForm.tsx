@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { site } from '@/content/site';
 import SignaturePad from '@/components/SignaturePad';
+import ContactEmail from '@/components/ContactEmail';
 
 interface SessionOption {
   id: number;
@@ -314,10 +315,8 @@ export default function BookingForm({ sessions }: { sessions: SessionOption[] })
             </p>
             {sessions.length === 0 && (
               <p className="mt-6 text-ink/60">
-                No dates are open for booking right now — email{' '}
-                <a href={`mailto:${site.contact.email}`} className="text-pink font-bold underline">
-                  {site.contact.email}
-                </a>{' '}
+                No dates are open for booking right now —{' '}
+                <ContactEmail className="text-pink font-bold underline">email us</ContactEmail>{' '}
                 and we’ll let you know as soon as new dates land.
               </p>
             )}
