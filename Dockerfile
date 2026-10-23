@@ -2,7 +2,7 @@
 # Data (SQLite DB + child photos/signatures) lives in a mounted volume at /var/data.
 
 # ---- build stage (needs toolchain for better-sqlite3 native build) ----
-FROM node:20-slim AS build
+FROM node:23-slim AS build
 WORKDIR /app
 RUN apt-get update && apt-get install -y python3 make g++ ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build
 
 # ---- run stage ----
-FROM node:20-slim AS run
+FROM node:23-slim AS run
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
