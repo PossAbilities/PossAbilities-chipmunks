@@ -29,11 +29,48 @@ jobs:
         env:
           STRIX_LLM: ${{ secrets.STRIX_LLM }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          # Fallback model, used only when the main one is out of credit (see run_strix below).
+          STRIX_LLM_FALLBACK: ${{ secrets.STRIX_LLM_FALLBACK }}
+          LLM_API_KEY_FALLBACK: ${{ secrets.LLM_API_KEY_FALLBACK }}
         run: |
+          # Fallback model (1 Nov 2026). If the main model's account is out of credit, this scan runs
+          # again on STRIX_LLM_FALLBACK / LLM_API_KEY_FALLBACK (use a different provider). It's per run
+          # only: the next scan starts on the main model again. It never loosens the check: only
+          # credit/quota errors fall back, findings from either run fail the job, and a missing or
+          # failing fallback fails it too.
+          run_strix() {
+            local out_of_credit='credit_balance_exhausted|insufficient_quota|credit balance is too low|exceeded your current quota|billing_hard_limit|quota exceeded'
+            local log="${RUNNER_TEMP:-/tmp}/strix-main.log" status
+            rm -f "$log.status"
+            { strix "$@" 2>&1 && s=0 || s=$?; echo "$s" > "$log.status"; } | tee "$log"
+            status=$(cat "$log.status" 2>/dev/null || echo 1)
+            [ "$status" = 0 ] && return 0
+            if grep -q 'VULN-[0-9]' "$log"; then
+              echo "::error::Strix reported vulnerabilities. See the log above."
+              return "$status"
+            fi
+            if ! grep -qiE "$out_of_credit" "$log"; then
+              return "$status"
+            fi
+            if [ -z "${STRIX_LLM_FALLBACK:-}" ] || [ -z "${LLM_API_KEY_FALLBACK:-}" ]; then
+              echo "::error::The main model's account is out of credit and no fallback is set. Add the STRIX_LLM_FALLBACK and LLM_API_KEY_FALLBACK secrets, or top up the main account, then re-run."
+              return 1
+            fi
+            echo "::warning::The main model's account is out of credit. Re-running this scan on the fallback model. Top up the main account when you can."
+            log="${RUNNER_TEMP:-/tmp}/strix-fallback.log"
+            rm -f "$log.status"
+            { STRIX_LLM="$STRIX_LLM_FALLBACK" LLM_API_KEY="$LLM_API_KEY_FALLBACK" strix "$@" 2>&1 && s=0 || s=$?; echo "$s" > "$log.status"; } | tee "$log"
+            status=$(cat "$log.status" 2>/dev/null || echo 1)
+            if [ "$status" != 0 ] && grep -qiE "$out_of_credit" "$log"; then
+              echo "::error::The fallback model's account is out of credit too. Top up either account, then re-run."
+            fi
+            return "$status"
+          }
+
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            strix -n -t ./ --scan-mode quick --scope-mode diff --diff-base origin/${{ github.base_ref }} || true
+            run_strix -n -t ./ --scan-mode quick --scope-mode diff --diff-base origin/${{ github.base_ref }} || true
           elif [ "${{ github.event_name }}" = "push" ]; then
-            strix -n -t ./ --scan-mode quick --scope-mode diff --diff-base ${{ github.event.before }} || true
+            run_strix -n -t ./ --scan-mode quick --scope-mode diff --diff-base ${{ github.event.before }} || true
           else
-            strix -n -t ./ --scan-mode quick || true
+            run_strix -n -t ./ --scan-mode quick || true
           fi
