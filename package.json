@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
-    "next": "^15.5.28",
+    "next": "^15.5.29",
     "nodemailer": "^10.6.1",
     "react": "^19.1.0",
     "react-dom": "^19.3.1"
