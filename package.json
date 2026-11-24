@@ -14,22 +14,22 @@
     "reminders": "node scripts/send-reminders.mjs"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0",
-    "next": "^15.5.28",
-    "nodemailer": "^10.1.1",
+    "better-sqlite3": "^13.0.3",
+    "next": "^16.4.6",
+    "nodemailer": "^10.6.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^26.6.5",
     "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
+    "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.6.1",
-    "playwright-core": "^1.61.1",
-    "postcss": "^8.5.23",
-    "tailwindcss": "^3.4.17",
+    "playwright-core": "^1.64.1",
+    "postcss": "^8.5.33",
+    "tailwindcss": "^3.4.19",
     "typescript": "^7.0.2"
   },
   "overrides": {
