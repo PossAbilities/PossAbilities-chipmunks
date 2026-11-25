@@ -36,7 +36,7 @@ export default async function OpengraphImage() {
           <div style={{ fontSize: 44, fontWeight: 700, color: '#E43092', marginTop: 24 }}>
             {site.strapline}
           </div>
-          <div style={{ fontSize: 28, color: '#251D52', marginTop: 24 }}>
+          <div style={{ display: 'flex', fontSize: 28, color: '#251D52', marginTop: 24 }}>
             Day camp at {site.venue.name}, {site.venue.addressLines[site.venue.addressLines.length - 1]}
           </div>
         </div>
