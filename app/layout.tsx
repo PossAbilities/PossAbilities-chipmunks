@@ -2,9 +2,30 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { site } from '@/content/site';
 
+const title = `${site.clubName} — ${site.strapline}`;
+
 export const metadata: Metadata = {
-  title: `${site.clubName} — ${site.strapline}`,
+  // Absolute base for social share URLs; set APP_URL when hosted elsewhere.
+  metadataBase: new URL(
+    process.env.APP_URL?.trim().replace(/\/+$/, '') || 'https://chipmunks.possabilities.org.uk',
+  ),
+  title,
   description: site.intro,
+  // og:image comes from app/opengraph-image.tsx
+  openGraph: {
+    type: 'website',
+    siteName: site.clubName,
+    title,
+    description: site.intro,
+    url: '/',
+    locale: 'en_GB',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description: site.intro,
+    images: [{ url: '/opengraph-image', alt: title }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
