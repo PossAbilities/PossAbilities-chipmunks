@@ -682,7 +682,7 @@ function PaymentForm({
           type="checkbox"
           checked={sendReceipt}
           onChange={(e) => setSendReceipt(e.target.checked)}
-          className="h-4 w-4 rounded border-ink/30 accent-teal"
+          className="h-4 w-4 rounded-sm border-ink/30 accent-teal"
         />
         Email a receipt to the family
       </label>
