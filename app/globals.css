@@ -1,6 +1,29 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Tailwind v4 reads the existing JS theme (brand colours, fonts,
+   keyframes, shadows) from tailwind.config.ts. */
+@config '../tailwind.config.ts';
+
+/* Tailwind v4 changed some Preflight defaults; keep the v3 look. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 /* ──────────────────────────────────────────────────────────────
    POSSABILITIES BRAND TOKENS — single source of truth.
@@ -190,9 +213,9 @@ h1, h2, h3, h4 {
   }
 }
 
-/* Buttons */
-.btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full font-display font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pink/30;
+/* Buttons — `btn` is a utility so the variants below can @apply it */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full font-display font-bold transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-pink/30;
 }
 .btn-primary {
   @apply btn bg-pink text-white px-7 py-3.5 text-lg shadow-pink hover:bg-pink-deep hover:shadow-lift hover:-translate-y-1 hover:scale-[1.03] active:translate-y-0 active:scale-95;
@@ -209,7 +232,7 @@ h1, h2, h3, h4 {
   @apply block font-bold text-ink mb-1.5;
 }
 .field-input {
-  @apply w-full rounded-2xl border-2 border-indigo/10 bg-white px-4 py-3 text-ink placeholder:text-ink/35 transition-colors focus:border-pink focus:outline-none focus:ring-4 focus:ring-pink/15;
+  @apply w-full rounded-2xl border-2 border-indigo/10 bg-white px-4 py-3 text-ink placeholder:text-ink/35 transition-colors focus:border-pink focus:outline-hidden focus:ring-4 focus:ring-pink/15;
 }
 .field-hint {
   @apply text-sm text-ink/55 mt-1;
