@@ -76,7 +76,7 @@ jobs:
       # The model is named so a retired default can't break this (as
       # claude-sonnet-4-20250514 did); change it here to use another.
       - name: Run Claude
-        uses: anthropics/claude-code-action/base-action@1d6de8cb0c237e7c15e9e1bdf973826ebae490cc # v1.0.248
+        uses: anthropics/claude-code-action/base-action@eb56b6666facdbd501035f4a0269d8caee2e7a8b # v1.0.289
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt_file: ${{ runner.temp }}/claude-prompt.md
